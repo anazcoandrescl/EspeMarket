@@ -30,7 +30,8 @@ function App() {
     businessName: 'EspeMarket',
     phone: '',
     logo: '',
-    adminPin: '1234'
+    adminPin: '1234',
+    posPin: '1234'
   });
   const [theme, setTheme] = useLocalStorage('canasta_theme', 'auto');
 
@@ -76,9 +77,24 @@ function App() {
   };
 
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [showPosLogin, setShowPosLogin] = useState(false);
   const [adminUser, setAdminUser] = useState('');
   const [adminPass, setAdminPass] = useState('');
+  const [posPass, setPosPass] = useState('');
   const [loginError, setLoginError] = useState('');
+
+  const handlePosLogin = (e) => {
+    e.preventDefault();
+    setLoginError('');
+    if (posPass === (settings.posPin || '1234')) {
+      setAccessRole('pos');
+      setActiveTab('pos');
+      setShowPosLogin(false);
+      setPosPass('');
+    } else {
+      setLoginError('PIN incorrecto para Caja.');
+    }
+  };
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
@@ -158,6 +174,34 @@ function App() {
                   <button type="submit" className="glass-button" style={{ flex: 1, justifyContent: 'center', background: 'var(--primary)' }}>Ingresar</button>
                 </div>
               </form>
+            ) : showPosLogin ? (
+              <form onSubmit={handlePosLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
+                <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>Acceso a Caja</h2>
+                
+                {loginError && <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderRadius: '8px', border: '1px solid var(--danger)', fontSize: '0.9rem', textAlign: 'center' }}>{loginError}</div>}
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>PIN de Caja</label>
+                  <div style={{ position: 'relative' }}>
+                    <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                    <input 
+                      type="password" 
+                      className="glass-input" 
+                      value={posPass}
+                      onChange={(e) => setPosPass(e.target.value)}
+                      placeholder="Ingresa el PIN (por defecto: 1234)"
+                      style={{ paddingLeft: '2.5rem', width: '100%' }}
+                      required
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                  <button type="button" className="glass-button secondary" onClick={() => setShowPosLogin(false)} style={{ flex: 1, justifyContent: 'center' }}>Volver</button>
+                  <button type="submit" className="glass-button" style={{ flex: 1, justifyContent: 'center', background: 'var(--primary)' }}>Ingresar</button>
+                </div>
+              </form>
             ) : (
               <>
                 <div style={{ background: 'var(--primary)', width: '64px', height: '64px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
@@ -169,7 +213,7 @@ function App() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <button 
                     className="glass-button" 
-                    onClick={() => { setAccessRole('pos'); setActiveTab('pos'); }}
+                    onClick={() => setShowPosLogin(true)}
                     style={{ padding: '1.5rem', justifyContent: 'center', fontSize: '1.1rem' }}
                   >
                     <Store size={24} style={{ marginRight: '0.5rem' }} />

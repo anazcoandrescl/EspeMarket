@@ -100,6 +100,18 @@ const Settings = ({ settings, setSettings, products, setProducts, baskets, setBa
             />
           </div>
 
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>PIN de Acceso a Caja</label>
+            <input 
+              type="password" 
+              className="glass-input" 
+              value={settings.posPin || '1234'}
+              onChange={(e) => setSettings({...settings, posPin: e.target.value})}
+              placeholder="Ej: 1234"
+            />
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Contraseña numérica para los vendedores.</p>
+          </div>
+
           <div style={{ marginBottom: '2rem' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Logo de la Empresa</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
