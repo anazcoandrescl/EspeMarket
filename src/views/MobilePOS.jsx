@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ShoppingCart, Trash2, DollarSign, Store, AlertTriangle, LogOut } from 'lucide-react';
+import { Search, ShoppingCart, Trash2, DollarSign, Store, AlertTriangle, LogOut, Check } from 'lucide-react';
 import { formatCLP, generateCode, formatRut } from '../utils/format';
 
 const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setSales, offers = [], settings }) => {
@@ -21,7 +21,6 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
     (p.category || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // All values forced to numbers to prevent NaN
   const calculateTotals = () => {
     const activeOffers = (offers || []).filter(o => o.active);
     let finalTotal = 0, totalCost = 0, totalDiscount = 0;
@@ -36,9 +35,7 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
       );
       if (offer) {
         const discVal = Number(offer.discountValue) || 0;
-        const d = offer.discountType === 'percent'
-          ? sub * (discVal / 100)
-          : Math.min(discVal * qty, sub);
+        const d = offer.discountType === 'percent' ? sub * (discVal / 100) : Math.min(discVal * qty, sub);
         totalDiscount += d;
         finalTotal += sub - d;
       } else {
@@ -61,12 +58,12 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
     setCart(prev => {
       const ex = prev.find(c => c.id === item.id && c.type === item.type);
       if (ex) {
-        if (ex.quantity >= stock) { showAlert(`Máximo stock: ${stock}`, 'error'); return prev; }
+        if (ex.quantity >= stock) { showAlert(`Máximo: ${stock}`, 'error'); return prev; }
         return prev.map(c => (c.id === item.id && c.type === item.type) ? { ...c, quantity: c.quantity + 1 } : c);
       }
       return [...prev, { ...item, quantity: 1, sellPrice: Number(item.sellPrice) || 0, buyPrice: Number(item.buyPrice) || 0 }];
     });
-    showAlert(`✓ ${item.name}`, 'success');
+    showAlert(`✓ ${item.name} agregado`, 'success');
   };
 
   const updateQty = (id, type, delta) => {
@@ -114,163 +111,290 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
   const cartCount = cart.reduce((a, c) => a + c.quantity, 0);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--surface)', position: 'fixed', inset: 0, zIndex: 100, overflow: 'hidden' }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column', height: '100dvh',
+      background: 'var(--background)', position: 'fixed', inset: 0, zIndex: 100, overflow: 'hidden'
+    }}>
 
-      {/* Top Bar */}
-      <div style={{ background: 'var(--panel)', borderBottom: '1px solid var(--surface-border)', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      {/* ── Top Bar ─────────────────────────────── */}
+      <div style={{
+        background: 'var(--surface)', backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid var(--surface-border)',
+        padding: '0.75rem 1rem', display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', flexShrink: 0
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <Store size={20} color="var(--primary)" />
-          <span style={{ fontWeight: 700, fontSize: '1rem' }}>{settings?.businessName || 'EspeMarket'}</span>
+          <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-main)' }}>
+            {settings?.businessName || 'EspeMarket'}
+          </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {cartCount > 0 && (
-            <span style={{ background: 'var(--primary)', color: 'white', borderRadius: '12px', padding: '0.2rem 0.6rem', fontSize: '0.8rem', fontWeight: 700 }}>
+            <span style={{
+              background: 'rgba(79,70,229,0.15)', color: 'var(--primary)',
+              border: '1px solid rgba(79,70,229,0.3)', borderRadius: '20px',
+              padding: '0.2rem 0.65rem', fontSize: '0.78rem', fontWeight: 700
+            }}>
               {cartCount} ítem{cartCount > 1 ? 's' : ''}
             </span>
           )}
           {onLogout && (
-            <button onClick={onLogout} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-              <LogOut size={20} />
+            <button onClick={onLogout} style={{
+              background: 'none', border: 'none', color: 'var(--text-muted)',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '0.25rem'
+            }}>
+              <LogOut size={18} />
             </button>
           )}
         </div>
       </div>
 
-      {/* Alert Banner */}
+      {/* ── Alert Banner ────────────────────────── */}
       {alert && (
         <div style={{
-          background: alert.type === 'success' ? '#059669' : '#dc2626',
-          color: 'white', padding: '0.5rem 1rem', textAlign: 'center',
-          fontSize: '0.9rem', fontWeight: 600, flexShrink: 0,
-          transition: 'all 0.2s'
+          background: alert.type === 'success'
+            ? 'linear-gradient(90deg,#059669,#10b981)'
+            : 'linear-gradient(90deg,#b91c1c,#ef4444)',
+          color: 'white', padding: '0.55rem 1rem', textAlign: 'center',
+          fontSize: '0.88rem', fontWeight: 600, flexShrink: 0,
+          letterSpacing: '0.01em'
         }}>
           {alert.msg}
         </div>
       )}
 
-      {/* Stock Alert */}
+      {/* ── Stock Alert ──────────────────────────── */}
       {stockAlerts.length > 0 && (
-        <div style={{ background: '#dc2626', color: 'white', padding: '0.5rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, fontSize: '0.85rem' }}>
-          <span><AlertTriangle size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+        <div style={{
+          background: 'rgba(239,68,68,0.12)', color: 'var(--danger)',
+          border: '1px solid rgba(239,68,68,0.3)',
+          padding: '0.5rem 1rem', display: 'flex', justifyContent: 'space-between',
+          alignItems: 'center', flexShrink: 0, fontSize: '0.82rem'
+        }}>
+          <span>
+            <AlertTriangle size={13} style={{ display: 'inline', marginRight: 5, verticalAlign: 'middle' }} />
             Stock bajo: {stockAlerts.map(p => p.name).join(', ')}
           </span>
-          <button onClick={() => setStockAlerts([])} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+          <button onClick={() => setStockAlerts([])} style={{
+            background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '1rem'
+          }}>✕</button>
         </div>
       )}
 
-      {/* Search */}
-      <div style={{ padding: '0.75rem', flexShrink: 0 }}>
+      {/* ── Search ──────────────────────────────── */}
+      <div style={{ padding: '0.75rem 0.75rem 0', flexShrink: 0 }}>
         <div style={{ position: 'relative' }}>
-          <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <Search size={15} style={{
+            position: 'absolute', left: '0.8rem', top: '50%',
+            transform: 'translateY(-50%)', color: 'var(--text-muted)'
+          }} />
           <input
             type="text" className="glass-input"
-            placeholder="Buscar producto..."
+            placeholder="Buscar producto o categoría..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            style={{ paddingLeft: '2.2rem', width: '100%' }}
+            style={{ paddingLeft: '2.1rem', fontSize: '0.9rem' }}
           />
         </div>
       </div>
 
-      {/* Product Grid */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 0.75rem 1rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+      {/* ── Product Grid ─────────────────────────── */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0.65rem 0.75rem 0.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.55rem' }}>
           {filteredItems.map(item => {
-            const hasOffer = (offers || []).some(o => o.active && o.targetId?.toString() === item.id?.toString() && o.targetType === item.type);
+            const hasOffer = (offers || []).some(o =>
+              o.active && o.targetId?.toString() === item.id?.toString() && o.targetType === item.type
+            );
             const inStock = (Number(item.stock) || 0) > 0;
             const inCart = cart.find(c => c.id === item.id && c.type === item.type);
+            const accentColor = item.type === 'basket' ? 'var(--secondary)' : 'var(--primary)';
+
             return (
               <button
                 key={`${item.type}-${item.id}`}
                 onClick={() => addToCart(item)}
                 disabled={!inStock}
                 style={{
-                  background: inCart ? 'rgba(99,102,241,0.12)' : 'var(--panel)',
-                  border: `2px solid ${inCart ? 'var(--primary)' : 'var(--surface-border)'}`,
-                  borderTop: `3px solid ${inStock ? (item.type === 'basket' ? 'var(--secondary)' : 'var(--primary)') : 'var(--text-muted)'}`,
-                  borderRadius: '10px', padding: '0.85rem 0.75rem',
-                  cursor: inStock ? 'pointer' : 'not-allowed', opacity: inStock ? 1 : 0.45,
+                  background: inCart
+                    ? 'rgba(79,70,229,0.1)'
+                    : 'var(--surface)',
+                  backdropFilter: 'blur(8px)',
+                  border: `1px solid ${inCart ? 'rgba(79,70,229,0.4)' : 'var(--surface-border)'}`,
+                  borderTop: `3px solid ${inStock ? accentColor : 'var(--text-muted)'}`,
+                  borderRadius: '12px', padding: '0.8rem 0.7rem',
+                  cursor: inStock ? 'pointer' : 'not-allowed',
+                  opacity: inStock ? 1 : 0.45,
                   textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.3rem',
                   WebkitTapHighlightColor: 'transparent', width: '100%',
+                  transition: 'transform 0.1s, box-shadow 0.1s',
+                  boxShadow: inCart ? '0 0 0 1px rgba(79,70,229,0.2)' : 'var(--glass-shadow)',
                   position: 'relative'
                 }}
                 onTouchStart={e => e.currentTarget.style.transform = 'scale(0.95)'}
                 onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)'; }}
               >
                 {inCart && (
-                  <span style={{ position: 'absolute', top: '0.4rem', right: '0.4rem', background: 'var(--primary)', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>
-                    {inCart.quantity}
-                  </span>
+                  <span style={{
+                    position: 'absolute', top: '0.35rem', right: '0.4rem',
+                    background: 'var(--primary)', color: 'white',
+                    borderRadius: '50%', width: '20px', height: '20px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.68rem', fontWeight: 800
+                  }}>{inCart.quantity}</span>
                 )}
-                <span style={{ fontWeight: 700, fontSize: '0.82rem', lineHeight: 1.2, paddingRight: inCart ? '1.5rem' : 0 }}>{item.name}</span>
-                {hasOffer && <span style={{ background: '#10b981', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.35rem', borderRadius: '4px', fontWeight: 700, alignSelf: 'flex-start' }}>⭐ PROMO</span>}
-                <span style={{ color: 'var(--primary)', fontWeight: 800, fontSize: '0.95rem', marginTop: 'auto' }}>{formatCLP(Number(item.sellPrice) || 0)}</span>
-                <span style={{ fontSize: '0.7rem', color: inStock ? 'var(--text-muted)' : '#dc2626' }}>
+                <span style={{
+                  fontWeight: 700, fontSize: '0.82rem', lineHeight: 1.25,
+                  color: 'var(--text-main)', paddingRight: inCart ? '1.4rem' : 0
+                }}>{item.name}</span>
+                {hasOffer && (
+                  <span style={{
+                    background: 'rgba(16,185,129,0.15)', color: 'var(--secondary)',
+                    border: '1px solid rgba(16,185,129,0.3)',
+                    fontSize: '0.6rem', padding: '0.1rem 0.35rem',
+                    borderRadius: '4px', fontWeight: 700, alignSelf: 'flex-start'
+                  }}>⭐ PROMO</span>
+                )}
+                <span style={{
+                  color: 'var(--primary)', fontWeight: 800, fontSize: '0.95rem', marginTop: 'auto'
+                }}>{formatCLP(Number(item.sellPrice) || 0)}</span>
+                <span style={{ fontSize: '0.7rem', color: inStock ? 'var(--text-muted)' : 'var(--danger)' }}>
                   {inStock ? `Stock: ${item.stock}` : 'Sin stock'}
                 </span>
               </button>
             );
           })}
           {filteredItems.length === 0 && (
-            <p style={{ color: 'var(--text-muted)', gridColumn: '1/-1', textAlign: 'center', padding: '2rem' }}>No hay productos.</p>
+            <p style={{ color: 'var(--text-muted)', gridColumn: '1/-1', textAlign: 'center', padding: '2rem', fontSize: '0.9rem' }}>
+              No hay productos.
+            </p>
           )}
         </div>
       </div>
 
-      {/* Bottom Checkout Bar */}
+      {/* ── Bottom Checkout Bar ──────────────────── */}
       {!checkoutStep && cartCount > 0 && (
-        <div style={{ background: 'var(--panel)', borderTop: '1px solid var(--surface-border)', padding: '0.75rem', flexShrink: 0 }}>
-          {/* Cart mini-summary */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
-            <div style={{ display: 'flex', gap: '0.5rem', flex: 1, overflowX: 'auto' }}>
-              {cart.map(item => (
-                <div key={`${item.type}-${item.id}`} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'var(--panel-alt)', borderRadius: '6px', padding: '0.25rem 0.5rem', whiteSpace: 'nowrap', fontSize: '0.78rem' }}>
-                  <span style={{ fontWeight: 600 }}>{item.quantity}× {item.name}</span>
-                  <button onClick={() => removeFromCart(item.id, item.type)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: 0, lineHeight: 1 }}>×</button>
-                </div>
-              ))}
-            </div>
+        <div style={{
+          background: 'var(--surface)', backdropFilter: 'blur(12px)',
+          borderTop: '1px solid var(--surface-border)',
+          padding: '0.65rem 0.75rem', flexShrink: 0
+        }}>
+          {/* Cart chips */}
+          <div style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', marginBottom: '0.55rem', paddingBottom: '0.1rem' }}>
+            {cart.map(item => (
+              <div key={`${item.type}-${item.id}`} style={{
+                display: 'flex', alignItems: 'center', gap: '0.3rem',
+                background: 'var(--panel-alt)', border: '1px solid var(--surface-border)',
+                borderRadius: '20px', padding: '0.2rem 0.55rem', whiteSpace: 'nowrap', fontSize: '0.76rem'
+              }}>
+                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>
+                  {item.quantity}× {item.name}
+                </span>
+                <button onClick={() => removeFromCart(item.id, item.type)} style={{
+                  background: 'none', border: 'none', color: 'var(--danger)',
+                  cursor: 'pointer', padding: 0, fontSize: '0.85rem', lineHeight: 1
+                }}>×</button>
+              </div>
+            ))}
           </div>
 
           {totalDiscount > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#10b981', marginBottom: '0.3rem' }}>
-              <span>Descuento promo</span><span>-{formatCLP(totalDiscount)}</span>
+            <div style={{
+              display: 'flex', justifyContent: 'space-between',
+              fontSize: '0.78rem', color: 'var(--secondary)', marginBottom: '0.35rem'
+            }}>
+              <span>Descuento promocional</span>
+              <span>-{formatCLP(totalDiscount)}</span>
             </div>
           )}
 
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button onClick={() => setCart([])} style={{ background: 'none', border: '1px solid var(--surface-border)', borderRadius: '10px', padding: '0.7rem 0.75rem', cursor: 'pointer', color: 'var(--danger)', flexShrink: 0 }}>
-              <Trash2 size={18} />
+            <button onClick={() => setCart([])} className="glass-button secondary" style={{
+              padding: '0.7rem 0.75rem', flexShrink: 0, color: 'var(--danger)',
+              borderColor: 'rgba(239,68,68,0.3)'
+            }}>
+              <Trash2 size={17} />
             </button>
             <button
               onClick={() => setCheckoutStep('rut')}
-              style={{ flex: 1, background: 'linear-gradient(135deg, #059669, #10b981)', border: 'none', borderRadius: '10px', padding: '0.85rem', color: 'white', cursor: 'pointer', fontWeight: 800, fontSize: '1.05rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+              className="glass-button"
+              style={{
+                flex: 1, fontSize: '1rem', padding: '0.85rem',
+                background: 'linear-gradient(135deg, var(--secondary-dark), var(--secondary))',
+                display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem'
+              }}
             >
-              <DollarSign size={20} />
+              <DollarSign size={18} />
               Cobrar {formatCLP(total)}
             </button>
           </div>
         </div>
       )}
 
-      {/* RUT Modal */}
+      {/* ── RUT Bottom Sheet ─────────────────────── */}
       {checkoutStep === 'rut' && (
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.88)', display: 'flex', alignItems: 'flex-end', zIndex: 200 }}>
-          <div style={{ background: '#1e2235', borderRadius: '24px 24px 0 0', padding: '1.5rem 1.5rem 2.5rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '1.1rem', borderTop: '3px solid #6366f1' }}>
-            <div style={{ width: '40px', height: '4px', background: 'rgba(255,255,255,0.15)', borderRadius: '2px', margin: '0 auto' }} />
-            <h3 style={{ margin: 0, textAlign: 'center', fontSize: '1.2rem', color: '#ffffff' }}>¿RUT del cliente?</h3>
-            <p style={{ margin: 0, textAlign: 'center', color: 'rgba(255,255,255,0.55)', fontSize: '0.85rem' }}>Opcional · puedes dejarlo vacío</p>
-            <input type="text" value={customerRut}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'var(--modal-overlay)',
+          display: 'flex', alignItems: 'flex-end', zIndex: 200
+        }}>
+          <div style={{
+            background: 'var(--modal-bg)',
+            borderRadius: '24px 24px 0 0',
+            padding: '1.25rem 1.5rem 2.5rem',
+            width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem',
+            borderTop: '3px solid var(--primary)',
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.3)'
+          }}>
+            {/* Handle */}
+            <div style={{ width: '36px', height: '4px', background: 'var(--surface-border)', borderRadius: '2px', margin: '0 auto' }} />
+
+            <div style={{ textAlign: 'center' }}>
+              <h3 style={{ margin: '0 0 0.2rem', fontSize: '1.15rem', color: 'var(--modal-text)', fontWeight: 700 }}>
+                ¿RUT del cliente?
+              </h3>
+              <p style={{ margin: 0, color: 'var(--modal-text-muted)', fontSize: '0.83rem' }}>
+                Opcional · puedes dejarlo vacío
+              </p>
+            </div>
+
+            <input
+              type="text"
+              value={customerRut}
               onChange={e => setCustomerRut(formatRut(e.target.value))}
-              placeholder="12.345.678-9" maxLength={12}
-              style={{ textAlign: 'center', fontSize: '1.2rem', padding: '1rem', letterSpacing: '0.05em', background: '#ffffff', color: '#111', border: 'none', borderRadius: '12px', outline: 'none', width: '100%', boxSizing: 'border-box' }} autoFocus />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.75rem' }}>
-              <button onClick={() => { setCheckoutStep(null); setCustomerRut(''); }}
-                style={{ padding: '0.9rem', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}>
+              placeholder="12.345.678-9"
+              maxLength={12}
+              autoFocus
+              style={{
+                textAlign: 'center', fontSize: '1.15rem', padding: '0.9rem',
+                letterSpacing: '0.06em', fontFamily: 'monospace',
+                background: 'var(--modal-input-bg)',
+                border: '1px solid var(--modal-input-border)',
+                borderRadius: '12px', outline: 'none', width: '100%',
+                color: 'var(--modal-text)',
+                boxSizing: 'border-box'
+              }}
+            />
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.65rem' }}>
+              <button
+                onClick={() => { setCheckoutStep(null); setCustomerRut(''); }}
+                style={{
+                  padding: '0.85rem',
+                  background: 'var(--modal-btn-ghost)',
+                  border: '1px solid var(--modal-btn-ghost-border)',
+                  borderRadius: '12px', color: 'var(--modal-text)',
+                  cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem',
+                  fontFamily: 'inherit'
+                }}
+              >
                 Cancelar
               </button>
-              <button onClick={() => setCheckoutStep('payment')}
-                style={{ padding: '0.9rem', background: '#6366f1', border: 'none', borderRadius: '12px', color: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '1rem' }}>
+              <button
+                onClick={() => setCheckoutStep('payment')}
+                className="glass-button"
+                style={{ padding: '0.85rem', fontSize: '1rem', borderRadius: '12px' }}
+              >
                 Siguiente →
               </button>
             </div>
@@ -278,52 +402,94 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
         </div>
       )}
 
-      {/* Payment Modal */}
+      {/* ── Payment Bottom Sheet ─────────────────── */}
       {checkoutStep === 'payment' && (
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.88)', display: 'flex', alignItems: 'flex-end', zIndex: 200 }}>
-          <div style={{ background: '#1e2235', borderRadius: '24px 24px 0 0', padding: '1.5rem 1.5rem 2.5rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '1.1rem', borderTop: '3px solid #10b981' }}>
-            <div style={{ width: '40px', height: '4px', background: 'rgba(255,255,255,0.15)', borderRadius: '2px', margin: '0 auto' }} />
-            <h3 style={{ margin: 0, textAlign: 'center', fontSize: '1.2rem', color: '#ffffff' }}>¿Cómo paga?</h3>
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'var(--modal-overlay)',
+          display: 'flex', alignItems: 'flex-end', zIndex: 200
+        }}>
+          <div style={{
+            background: 'var(--modal-bg)',
+            borderRadius: '24px 24px 0 0',
+            padding: '1.25rem 1.5rem 2.5rem',
+            width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem',
+            borderTop: '3px solid var(--secondary)',
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.3)'
+          }}>
+            {/* Handle */}
+            <div style={{ width: '36px', height: '4px', background: 'var(--surface-border)', borderRadius: '2px', margin: '0 auto' }} />
 
-            {/* Payment options */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <h3 style={{ margin: 0, textAlign: 'center', fontSize: '1.15rem', color: 'var(--modal-text)', fontWeight: 700 }}>
+              ¿Cómo paga?
+            </h3>
+
+            {/* Payment Options */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
               {[
-                { id: 'Efectivo', emoji: '💵', label: 'Efectivo', color: '#16a34a' },
-                { id: 'Transferencia', emoji: '📲', label: 'Transferencia', color: '#2563eb' }
+                { id: 'Efectivo', emoji: '💵', label: 'Efectivo', color: '#16a34a', colorBg: 'rgba(22,163,74,0.1)', colorBorder: 'rgba(22,163,74,0.4)' },
+                { id: 'Transferencia', emoji: '📲', label: 'Transferencia', color: '#2563eb', colorBg: 'rgba(37,99,235,0.1)', colorBorder: 'rgba(37,99,235,0.4)' }
               ].map(m => {
                 const selected = paymentMethod === m.id;
                 return (
-                  <button key={m.id} onClick={() => setPaymentMethod(m.id)}
-                    style={{
-                      padding: '1.4rem 1rem', borderRadius: '14px', cursor: 'pointer',
-                      background: selected ? m.color : 'rgba(255,255,255,0.08)',
-                      border: selected ? `2px solid ${m.color}` : '2px solid rgba(255,255,255,0.15)',
-                      color: selected ? 'white' : 'rgba(255,255,255,0.6)',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem',
-                      transition: 'all 0.15s',
-                      boxShadow: selected ? `0 4px 20px ${m.color}66` : 'none'
-                    }}>
-                    <span style={{ fontSize: '2rem' }}>{m.emoji}</span>
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{m.label}</span>
-                    {selected && <span style={{ fontSize: '0.7rem', background: 'rgba(255,255,255,0.25)', padding: '0.15rem 0.5rem', borderRadius: '4px', color: 'white' }}>✓ Seleccionado</span>}
+                  <button key={m.id} onClick={() => setPaymentMethod(m.id)} style={{
+                    padding: '1.25rem 1rem', borderRadius: '14px', cursor: 'pointer',
+                    background: selected ? m.color : 'var(--modal-surface)',
+                    border: `2px solid ${selected ? m.color : 'var(--modal-btn-ghost-border)'}`,
+                    color: selected ? 'white' : 'var(--modal-text-muted)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.35rem',
+                    transition: 'all 0.15s',
+                    boxShadow: selected ? `0 4px 20px ${m.color}55` : 'none',
+                    fontFamily: 'inherit'
+                  }}>
+                    <span style={{ fontSize: '1.75rem', lineHeight: 1 }}>{m.emoji}</span>
+                    <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{m.label}</span>
+                    {selected && (
+                      <span style={{
+                        display: 'flex', alignItems: 'center', gap: '0.25rem',
+                        fontSize: '0.68rem', background: 'rgba(255,255,255,0.22)',
+                        padding: '0.15rem 0.5rem', borderRadius: '4px', color: 'white', fontWeight: 700
+                      }}>
+                        <Check size={10} /> Seleccionado
+                      </span>
+                    )}
                   </button>
                 );
               })}
             </div>
 
             {/* Total */}
-            <div style={{ background: 'linear-gradient(135deg, #059669, #10b981)', borderRadius: '12px', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>Total a cobrar</span>
-              <span style={{ color: 'white', fontWeight: 800, fontSize: '1.5rem' }}>{formatCLP(total)}</span>
+            <div style={{
+              background: 'linear-gradient(135deg, var(--secondary-dark), var(--secondary))',
+              borderRadius: '12px', padding: '0.9rem 1.1rem',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+            }}>
+              <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 600, fontSize: '0.9rem' }}>Total a cobrar</span>
+              <span style={{ color: 'white', fontWeight: 800, fontSize: '1.4rem' }}>{formatCLP(total)}</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.75rem' }}>
-              <button onClick={() => setCheckoutStep('rut')}
-                style={{ padding: '0.9rem', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.65rem' }}>
+              <button
+                onClick={() => setCheckoutStep('rut')}
+                style={{
+                  padding: '0.85rem',
+                  background: 'var(--modal-btn-ghost)',
+                  border: '1px solid var(--modal-btn-ghost-border)',
+                  borderRadius: '12px', color: 'var(--modal-text)',
+                  cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem',
+                  fontFamily: 'inherit'
+                }}
+              >
                 ← Atrás
               </button>
-              <button onClick={processCheckout}
-                style={{ padding: '0.9rem', background: '#059669', border: 'none', borderRadius: '12px', color: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '1rem' }}>
+              <button
+                onClick={processCheckout}
+                className="glass-button"
+                style={{
+                  padding: '0.85rem', fontSize: '1rem', borderRadius: '12px',
+                  background: 'linear-gradient(135deg, var(--secondary-dark), var(--secondary))'
+                }}
+              >
                 ✅ Confirmar Venta
               </button>
             </div>
