@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, ShoppingCart, Minus, Plus, Trash2, DollarSign, Store, Maximize, Keyboard, KeyboardOff, LogOut, AlertTriangle } from 'lucide-react';
 import { formatCLP, generateCode, formatRut } from '../utils/format';
+import { useIsMobile } from '../hooks/useIsMobile';
+import MobilePOS from './MobilePOS';
 
 const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setSales, offers = [], settings }) => {
+  const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState([]);
   const [keyboardMode, setKeyboardMode] = useState(false);
@@ -16,6 +19,10 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
   const searchInputRef = useRef(null);
   const qtyInputRef = useRef(null);
   const rutInputRef = useRef(null);
+
+  if (isMobile) {
+    return <MobilePOS onLogout={onLogout} products={products} setProducts={setProducts} baskets={baskets} setBaskets={setBaskets} sales={sales} setSales={setSales} offers={offers} settings={settings} />;
+  }
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
