@@ -146,7 +146,7 @@ function App() {
                       className="glass-input" 
                       value={adminUser}
                       onChange={(e) => setAdminUser(e.target.value)}
-                      placeholder="Ej: kevin"
+                      placeholder=""
                       style={{ paddingLeft: '2.5rem', width: '100%' }}
                       required
                     />
