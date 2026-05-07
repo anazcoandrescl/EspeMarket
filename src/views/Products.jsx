@@ -7,7 +7,9 @@ const getCategoryColor = (categoryName, categories = []) => {
   const getContrast = (hex) => {
     let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
     let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-    return (yiq >= 128) ? '#000000' : '#ffffff';
+    // Higher threshold (180) means only very light colors (like bright yellow) get dark text.
+    // Everything else gets white text which looks much better on badges.
+    return (yiq >= 180) ? '#1f2937' : '#ffffff';
   };
 
   if (!categoryName) return { bg: '#3b82f6', text: '#ffffff', border: '#2563eb' };
@@ -86,8 +88,9 @@ const Products = ({ products, setProducts, categories, setCategories }) => {
           const catName = row['Categoria'] || row['Categoría'] || row['Category'] || '';
           
           if (catName && !newCategories.find(c => c.name.toLowerCase() === catName.toLowerCase())) {
-            // Auto create missing category with random color
-            const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            // Auto create missing category with curated vibrant color
+            const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#ec4899', '#6366f1', '#14b8a6'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
             newCategories.push({ id: Date.now().toString() + Math.random(), name: catName, color: randomColor });
             categoriesChanged = true;
           }

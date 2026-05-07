@@ -205,7 +205,7 @@ const Settings = ({ settings, setSettings, products, setProducts, baskets, setBa
           
           <button 
             className="glass-button secondary" 
-            onClick={() => setCategories([...(categories || []), { id: Date.now().toString(), name: 'Nueva Categoría', color: '#888888' }])}
+            onClick={() => setCategories([...(categories || []), { id: Date.now().toString(), name: 'Nueva Categoría', color: '#3b82f6' }])}
             style={{ width: 'max-content' }}
           >
             <Plus size={18} /> Agregar Categoría

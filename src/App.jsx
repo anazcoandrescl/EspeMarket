@@ -24,7 +24,7 @@ function App() {
   const [categories, setCategories] = useLocalStorage('canasta_categories', [
     { id: '1', name: 'Abarrotes', color: '#fbbf24' },
     { id: '2', name: 'Lácteos', color: '#60a5fa' },
-    { id: '3', name: 'Aseo', color: '#34d399' }
+    { id: '3', name: 'Huevos', color: '#f59e0b' }
   ]);
   const [settings, setSettings] = useLocalStorage('canasta_settings', {
     businessName: 'EspeMarket',
