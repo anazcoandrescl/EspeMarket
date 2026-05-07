@@ -255,8 +255,8 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
 
       {/* RUT Modal */}
       {checkoutStep === 'rut' && (
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'flex-end', zIndex: 200 }}>
-          <div style={{ background: 'var(--panel)', borderRadius: '24px 24px 0 0', padding: '2rem 1.5rem 2.5rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.82)', display: 'flex', alignItems: 'flex-end', zIndex: 200 }}>
+          <div style={{ background: 'var(--panel)', borderRadius: '24px 24px 0 0', padding: '2rem 1.5rem 2.5rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '1.25rem', borderTop: '3px solid var(--primary)' }}>
             <div style={{ width: '40px', height: '4px', background: 'var(--surface-border)', borderRadius: '2px', margin: '0 auto -0.5rem' }} />
             <h3 style={{ margin: 0, textAlign: 'center', fontSize: '1.15rem' }}>¿RUT del cliente?</h3>
             <p style={{ margin: 0, textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '-0.5rem' }}>Opcional · puedes dejarlo vacío</p>
@@ -280,8 +280,8 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
 
       {/* Payment Modal */}
       {checkoutStep === 'payment' && (
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'flex-end', zIndex: 200 }}>
-          <div style={{ background: 'var(--panel)', borderRadius: '24px 24px 0 0', padding: '2rem 1.5rem 2.5rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.82)', display: 'flex', alignItems: 'flex-end', zIndex: 200 }}>
+          <div style={{ background: 'var(--panel)', borderRadius: '24px 24px 0 0', padding: '2rem 1.5rem 2.5rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '1.25rem', borderTop: '3px solid #10b981' }}>
             <div style={{ width: '40px', height: '4px', background: 'var(--surface-border)', borderRadius: '2px', margin: '0 auto -0.5rem' }} />
             <h3 style={{ margin: 0, textAlign: 'center', fontSize: '1.15rem' }}>¿Cómo paga?</h3>
 

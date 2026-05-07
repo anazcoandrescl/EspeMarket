@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const SUPABASE_URL = 'https://thpncsayykhidafheamb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_GH5XLBnXGl7TyCu25HPQOw_OclWkOIh';
@@ -185,6 +186,28 @@ const SupabaseSync = ({ inline = false }) => {
   } : {
     position: 'fixed', bottom: '1rem', left: '1rem', zIndex: 9999, background: 'var(--panel)', padding: '0.5rem 1rem', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', border: '1px solid var(--surface-border)', fontSize: '0.8rem'
   };
+
+  const isMobile = useIsMobile();
+
+  // Mobile: show compact circular icon only
+  if (isMobile) {
+    const iconColor = status === 'synced' ? '#10B981' : status === 'error' ? '#ef4444' : 'var(--primary)';
+    const bg = status === 'synced' ? 'rgba(16,185,129,0.15)' : status === 'error' ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)';
+    const border = status === 'synced' ? 'rgba(16,185,129,0.4)' : status === 'error' ? 'rgba(239,68,68,0.4)' : 'rgba(99,102,241,0.4)';
+    return (
+      <button
+        onClick={status === 'error' ? handleManualRetry : undefined}
+        title={status === 'synced' ? 'Sincronizado en la nube' : status === 'error' ? `Sin conexión - Toca para reintentar` : 'Sincronizando...'}
+        style={{ position: 'fixed', bottom: '5rem', right: '0.75rem', zIndex: 9999, width: '36px', height: '36px', borderRadius: '50%', background: bg, border: `1.5px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: status === 'error' ? 'pointer' : 'default', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+      >
+        {status === 'connecting' && <RefreshCw size={16} className="spin" color="var(--text-muted)" />}
+        {status === 'syncing' && <RefreshCw size={16} className="spin" color={iconColor} />}
+        {status === 'synced' && <Cloud size={16} color={iconColor} />}
+        {status === 'error' && <CloudOff size={16} color={iconColor} />}
+        <style>{`@keyframes spin { 100% { transform: rotate(360deg); } } .spin { animation: spin 1s linear infinite; }`}</style>
+      </button>
+    );
+  }
 
   return (
     <div style={style} title={lastError ? `Último error: ${lastError}` : ''}>
