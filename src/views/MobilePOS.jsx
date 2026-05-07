@@ -255,22 +255,22 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
 
       {/* RUT Modal */}
       {checkoutStep === 'rut' && (
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.82)', display: 'flex', alignItems: 'flex-end', zIndex: 200 }}>
-          <div style={{ background: 'var(--panel)', borderRadius: '24px 24px 0 0', padding: '2rem 1.5rem 2.5rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '1.25rem', borderTop: '3px solid var(--primary)' }}>
-            <div style={{ width: '40px', height: '4px', background: 'var(--surface-border)', borderRadius: '2px', margin: '0 auto -0.5rem' }} />
-            <h3 style={{ margin: 0, textAlign: 'center', fontSize: '1.15rem' }}>¿RUT del cliente?</h3>
-            <p style={{ margin: 0, textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '-0.5rem' }}>Opcional · puedes dejarlo vacío</p>
-            <input type="text" className="glass-input" value={customerRut}
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.88)', display: 'flex', alignItems: 'flex-end', zIndex: 200 }}>
+          <div style={{ background: '#1e2235', borderRadius: '24px 24px 0 0', padding: '1.5rem 1.5rem 2.5rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '1.1rem', borderTop: '3px solid #6366f1' }}>
+            <div style={{ width: '40px', height: '4px', background: 'rgba(255,255,255,0.15)', borderRadius: '2px', margin: '0 auto' }} />
+            <h3 style={{ margin: 0, textAlign: 'center', fontSize: '1.2rem', color: '#ffffff' }}>¿RUT del cliente?</h3>
+            <p style={{ margin: 0, textAlign: 'center', color: 'rgba(255,255,255,0.55)', fontSize: '0.85rem' }}>Opcional · puedes dejarlo vacío</p>
+            <input type="text" value={customerRut}
               onChange={e => setCustomerRut(formatRut(e.target.value))}
               placeholder="12.345.678-9" maxLength={12}
-              style={{ textAlign: 'center', fontSize: '1.2rem', padding: '1rem', letterSpacing: '0.05em' }} autoFocus />
+              style={{ textAlign: 'center', fontSize: '1.2rem', padding: '1rem', letterSpacing: '0.05em', background: '#ffffff', color: '#111', border: 'none', borderRadius: '12px', outline: 'none', width: '100%', boxSizing: 'border-box' }} autoFocus />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.75rem' }}>
               <button onClick={() => { setCheckoutStep(null); setCustomerRut(''); }}
-                style={{ padding: '0.9rem', background: 'var(--panel-alt)', border: '1px solid var(--surface-border)', borderRadius: '12px', color: 'var(--text-main)', cursor: 'pointer', fontWeight: 600 }}>
+                style={{ padding: '0.9rem', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}>
                 Cancelar
               </button>
               <button onClick={() => setCheckoutStep('payment')}
-                style={{ padding: '0.9rem', background: 'var(--primary)', border: 'none', borderRadius: '12px', color: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '1rem' }}>
+                style={{ padding: '0.9rem', background: '#6366f1', border: 'none', borderRadius: '12px', color: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '1rem' }}>
                 Siguiente →
               </button>
             </div>
@@ -280,12 +280,12 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
 
       {/* Payment Modal */}
       {checkoutStep === 'payment' && (
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.82)', display: 'flex', alignItems: 'flex-end', zIndex: 200 }}>
-          <div style={{ background: 'var(--panel)', borderRadius: '24px 24px 0 0', padding: '2rem 1.5rem 2.5rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '1.25rem', borderTop: '3px solid #10b981' }}>
-            <div style={{ width: '40px', height: '4px', background: 'var(--surface-border)', borderRadius: '2px', margin: '0 auto -0.5rem' }} />
-            <h3 style={{ margin: 0, textAlign: 'center', fontSize: '1.15rem' }}>¿Cómo paga?</h3>
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.88)', display: 'flex', alignItems: 'flex-end', zIndex: 200 }}>
+          <div style={{ background: '#1e2235', borderRadius: '24px 24px 0 0', padding: '1.5rem 1.5rem 2.5rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '1.1rem', borderTop: '3px solid #10b981' }}>
+            <div style={{ width: '40px', height: '4px', background: 'rgba(255,255,255,0.15)', borderRadius: '2px', margin: '0 auto' }} />
+            <h3 style={{ margin: 0, textAlign: 'center', fontSize: '1.2rem', color: '#ffffff' }}>¿Cómo paga?</h3>
 
-            {/* Payment options - large, clear */}
+            {/* Payment options */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               {[
                 { id: 'Efectivo', emoji: '💵', label: 'Efectivo', color: '#16a34a' },
@@ -296,22 +296,22 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
                   <button key={m.id} onClick={() => setPaymentMethod(m.id)}
                     style={{
                       padding: '1.4rem 1rem', borderRadius: '14px', cursor: 'pointer',
-                      background: selected ? m.color : 'var(--panel-alt)',
-                      border: selected ? `2px solid ${m.color}` : '2px solid var(--surface-border)',
-                      color: selected ? 'white' : 'var(--text-muted)',
+                      background: selected ? m.color : 'rgba(255,255,255,0.08)',
+                      border: selected ? `2px solid ${m.color}` : '2px solid rgba(255,255,255,0.15)',
+                      color: selected ? 'white' : 'rgba(255,255,255,0.6)',
                       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem',
                       transition: 'all 0.15s',
-                      boxShadow: selected ? `0 4px 16px ${m.color}55` : 'none'
+                      boxShadow: selected ? `0 4px 20px ${m.color}66` : 'none'
                     }}>
                     <span style={{ fontSize: '2rem' }}>{m.emoji}</span>
                     <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{m.label}</span>
-                    {selected && <span style={{ fontSize: '0.7rem', opacity: 0.9, background: 'rgba(255,255,255,0.2)', padding: '0.1rem 0.5rem', borderRadius: '4px' }}>✓ Seleccionado</span>}
+                    {selected && <span style={{ fontSize: '0.7rem', background: 'rgba(255,255,255,0.25)', padding: '0.15rem 0.5rem', borderRadius: '4px', color: 'white' }}>✓ Seleccionado</span>}
                   </button>
                 );
               })}
             </div>
 
-            {/* Total highlight */}
+            {/* Total */}
             <div style={{ background: 'linear-gradient(135deg, #059669, #10b981)', borderRadius: '12px', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>Total a cobrar</span>
               <span style={{ color: 'white', fontWeight: 800, fontSize: '1.5rem' }}>{formatCLP(total)}</span>
@@ -319,7 +319,7 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.75rem' }}>
               <button onClick={() => setCheckoutStep('rut')}
-                style={{ padding: '0.9rem', background: 'var(--panel-alt)', border: '1px solid var(--surface-border)', borderRadius: '12px', color: 'var(--text-main)', cursor: 'pointer', fontWeight: 600 }}>
+                style={{ padding: '0.9rem', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}>
                 ← Atrás
               </button>
               <button onClick={processCheckout}
