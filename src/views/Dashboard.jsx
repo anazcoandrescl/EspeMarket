@@ -21,8 +21,10 @@ const Dashboard = ({ products, baskets, sales }) => {
   const topProducts = useMemo(() => {
     const counts = {};
     sales.forEach(sale => {
+      const isPromo = (Number(sale.discountApplied) || 0) > 0;
       (sale.items || []).forEach(item => {
-        counts[item.name] = (counts[item.name] || 0) + (item.quantity || 1);
+        const displayName = isPromo ? `${item.name} (Promo)` : item.name;
+        counts[displayName] = (counts[displayName] || 0) + (item.quantity || 1);
       });
     });
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);

@@ -49,11 +49,15 @@ const LiveDashboard = ({ products, baskets, sales = [] }) => {
   const topBaskets = useMemo(() => {
     const counts = {};
     safeSales.forEach(s => {
-      if (!counts[s.name]) {
-        counts[s.name] = { name: s.name, quantity: 0, revenue: 0 };
-      }
-      counts[s.name].quantity += 1;
-      counts[s.name].revenue += (Number(s.revenue) || 0);
+      const isPromo = (Number(s.discountApplied) || 0) > 0;
+      (s.items || []).forEach(item => {
+        const displayName = isPromo ? `${item.name} (Promo)` : item.name;
+        if (!counts[displayName]) {
+          counts[displayName] = { name: displayName, quantity: 0, revenue: 0 };
+        }
+        counts[displayName].quantity += (Number(item.quantity) || 1);
+        counts[displayName].revenue += ((Number(item.sellPrice) || 0) * (Number(item.quantity) || 1));
+      });
     });
     return Object.values(counts)
       .sort((a, b) => b.quantity - a.quantity)
