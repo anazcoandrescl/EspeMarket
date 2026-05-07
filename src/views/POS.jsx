@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, ShoppingCart, Minus, Plus, Trash2, DollarSign, Store, Maximize, Keyboard, KeyboardOff, LogOut, Receipt, AlertTriangle } from 'lucide-react';
+import { Search, ShoppingCart, Minus, Plus, Trash2, DollarSign, Store, Maximize, Keyboard, KeyboardOff, LogOut, AlertTriangle } from 'lucide-react';
 import { formatCLP, generateCode, formatRut } from '../utils/format';
-import SaleTicket from '../components/SaleTicket';
 
 const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setSales, offers = [], settings }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,8 +12,7 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
   const [checkoutStep, setCheckoutStep] = useState(null);
   const [customerRut, setCustomerRut] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Efectivo');
-  const [ticketSale, setTicketSale] = useState(null); // sale to show ticket for
-  const [stockAlerts, setStockAlerts] = useState([]); // low stock after sale
+  const [stockAlerts, setStockAlerts] = useState([]);
   const searchInputRef = useRef(null);
   const qtyInputRef = useRef(null);
   const rutInputRef = useRef(null);
@@ -166,7 +164,7 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
     setCart([]);
     setCheckoutStep(null);
     setCustomerRut('');
-    setTicketSale(newSale); // Open ticket modal automatically
+    setAlertPrompt({ message: '✅ ¡Venta registrada!', type: 'success' });
   };
 
   const filteredItems = allItems.filter(p => 
@@ -299,15 +297,6 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
 
   return (
     <>
-      {/* Sale Ticket Modal */}
-      {ticketSale && (
-        <SaleTicket
-          sale={ticketSale}
-          settings={settings}
-          onClose={() => setTicketSale(null)}
-        />
-      )}
-
       {/* Low Stock Alerts Banner */}
       {stockAlerts.length > 0 && (
         <div style={{
@@ -329,7 +318,6 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
           ))}
         </div>
       )}
-
     <div style={{ display: 'flex', gap: '2rem', height: 'calc(100vh - 4rem)' }}>
       {/* Product List */}
 
