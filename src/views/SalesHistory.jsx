@@ -86,6 +86,8 @@ const SalesHistory = ({ sales, setSales, baskets, setBaskets, products, setProdu
       'Precio Venta Unitario',
       'Costo Unitario',
       'Subtotal Bruto',
+      'Descuento Promo',
+      'Ingreso Final',
       'Ganancia Neta'
     ];
 
@@ -97,7 +99,13 @@ const SalesHistory = ({ sales, setSales, baskets, setBaskets, products, setProdu
       const hora = date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
       
       if (sale.items && sale.items.length > 0) {
-        sale.items.forEach(item => {
+        sale.items.forEach((item, index) => {
+          const subtotalBruto = (item.sellPrice || 0) * (item.quantity || 1);
+          // Colocamos el descuento total de la venta solo en la primera fila para no duplicarlo al sumar la columna en Excel
+          const descuento = (index === 0 && sale.discountApplied > 0) ? sale.discountApplied : 0;
+          const ingresoFinal = subtotalBruto - descuento;
+          const gananciaNeta = ingresoFinal - ((item.cost || 0) * (item.quantity || 1));
+
           const row = [
             sale.id,
             fecha,
@@ -110,30 +118,13 @@ const SalesHistory = ({ sales, setSales, baskets, setBaskets, products, setProdu
             item.quantity || 1,
             item.sellPrice || 0,
             item.cost || 0,
-            (item.sellPrice || 0) * (item.quantity || 1),
-            ((item.sellPrice || 0) - (item.cost || 0)) * (item.quantity || 1)
+            subtotalBruto,
+            descuento,
+            ingresoFinal,
+            gananciaNeta
           ];
           csvContent += row.join(";") + "\n";
         });
-        
-        if (sale.discountApplied > 0) {
-          const rowDiscount = [
-            sale.id,
-            fecha,
-            hora,
-            cleanRut(sale.customerRut || 'Consumidor Final'),
-            sale.paymentMethod || 'Efectivo',
-            'Descuento',
-            'Promocion',
-            '"Descuento Aplicado"',
-            1,
-            -sale.discountApplied,
-            0,
-            -sale.discountApplied,
-            -sale.discountApplied
-          ];
-          csvContent += rowDiscount.join(";") + "\n";
-        }
       } else {
         const row = [
           sale.id,
@@ -147,6 +138,8 @@ const SalesHistory = ({ sales, setSales, baskets, setBaskets, products, setProdu
           1,
           sale.revenue || 0,
           (sale.revenue || 0) - (sale.profit || 0),
+          sale.revenue || 0,
+          0,
           sale.revenue || 0,
           sale.profit || 0
         ];
