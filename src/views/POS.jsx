@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, ShoppingCart, Minus, Plus, Trash2, DollarSign, Store, Maximize, Keyboard, KeyboardOff } from 'lucide-react';
+import { Search, ShoppingCart, Minus, Plus, Trash2, DollarSign, Store, Maximize, Keyboard, KeyboardOff, LogOut } from 'lucide-react';
 import { formatCLP, generateCode, formatRut } from '../utils/format';
 
-const POS = ({ products, setProducts, baskets, setBaskets, sales, setSales, offers = [] }) => {
+const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setSales, offers = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState([]);
   const [keyboardMode, setKeyboardMode] = useState(false);
@@ -289,6 +289,17 @@ const POS = ({ products, setProducts, baskets, setBaskets, sales, setSales, offe
         <div className="header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1><Store size={28} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.5rem', color: 'var(--primary)' }} />Punto de Venta</h1>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {onLogout && (
+              <button 
+                className="glass-button secondary" 
+                onClick={onLogout}
+                style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                title="Cerrar Caja"
+              >
+                <LogOut size={18} />
+                <span className="hide-mobile">Cerrar Caja</span>
+              </button>
+            )}
             <button 
               className={`glass-button ${keyboardMode ? '' : 'secondary'}`}
               onClick={() => setKeyboardMode(!keyboardMode)}

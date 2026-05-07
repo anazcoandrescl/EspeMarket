@@ -243,11 +243,8 @@ function App() {
         <SupabaseSync />
         <div className="app-layout" style={{ gridTemplateColumns: '1fr' }}>
         <main className="main-content" style={{ padding: 0 }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '1rem', background: 'var(--bg-main)', borderBottom: '1px solid var(--surface-border)' }}>
-             <button onClick={handleLogout} className="glass-button secondary" style={{ color: 'var(--text-muted)' }}>Salir al Menú Principal</button>
-          </div>
           <div style={{ padding: '1.5rem' }}>
-            <POS products={products} setProducts={setProducts} baskets={baskets} setBaskets={setBaskets} sales={sales} setSales={setSales} offers={offers} />
+            <POS onLogout={handleLogout} products={products} setProducts={setProducts} baskets={baskets} setBaskets={setBaskets} sales={sales} setSales={setSales} offers={offers} />
           </div>
         </main>
       </div>
