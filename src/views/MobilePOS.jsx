@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Search, ShoppingCart, Trash2, DollarSign, Store, AlertTriangle, LogOut, Check } from 'lucide-react';
+import { Search, ShoppingCart, Trash2, DollarSign, Store, AlertTriangle, LogOut, Check, History, RotateCcw, TrendingUp } from 'lucide-react';
 import { formatCLP, generateCode, formatRut } from '../utils/format';
 
 const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setSales, offers = [], settings }) => {
+  const [activeTab, setActiveTab] = useState('products'); // 'products' | 'history'
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState([]);
   const [checkoutStep, setCheckoutStep] = useState(null);
@@ -113,7 +114,29 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
     showAlert('✅ ¡Venta registrada!', 'success');
   };
 
+  const cancelSale = (sale) => {
+    if (!window.confirm(`¿Anular venta ${sale.id}?`)) return;
+    // Restore stock
+    setProducts(prev => prev.map(p => {
+      const ci = (sale.items || []).find(c => c.id === p.id && c.type === 'product');
+      return ci ? { ...p, stock: (Number(p.stock) || 0) + ci.quantity } : p;
+    }));
+    setBaskets(prev => prev.map(b => {
+      const ci = (sale.items || []).find(c => c.id === b.id && c.type === 'basket');
+      return ci ? { ...b, stock: (Number(b.stock) || 0) + ci.quantity } : b;
+    }));
+    setSales(prev => prev.filter(s => s.id !== sale.id));
+    showAlert('Venta anulada y stock restaurado', 'error');
+  };
+
   const cartCount = cart.reduce((a, c) => a + c.quantity, 0);
+
+  // Sales history helpers
+  const today = new Date().toDateString();
+  const todaySales = (sales || []).filter(s => new Date(s.date).toDateString() === today);
+  const todayRevenue = todaySales.reduce((a, s) => a + (Number(s.revenue) || 0), 0);
+  const todayProfit = todaySales.reduce((a, s) => a + (Number(s.profit) || 0), 0);
+  const recentSales = [...(sales || [])].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 30);
 
   return (
     <div style={{
@@ -277,8 +300,89 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
         </div>
       </div>
 
-      {/* ── Bottom Checkout Bar ──────────────────── */}
-      {!checkoutStep && cartCount > 0 && (
+      {/* ── History Tab ─────────────────────────────── */}
+      {activeTab === 'history' && !checkoutStep && (
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0.75rem' }}>
+
+          {/* Daily summary cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.55rem', marginBottom: '1rem' }}>
+            <div style={{
+              background: 'var(--surface)', backdropFilter: 'blur(8px)',
+              border: '1px solid var(--surface-border)', borderRadius: '12px',
+              padding: '0.85rem', borderTop: '3px solid var(--primary)'
+            }}>
+              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.3rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ventas hoy</p>
+              <p style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--primary)' }}>{formatCLP(todayRevenue)}</p>
+              <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{todaySales.length} transaccion{todaySales.length !== 1 ? 'es' : ''}</p>
+            </div>
+            <div style={{
+              background: 'var(--surface)', backdropFilter: 'blur(8px)',
+              border: '1px solid var(--surface-border)', borderRadius: '12px',
+              padding: '0.85rem', borderTop: '3px solid var(--secondary)'
+            }}>
+              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.3rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ganancia hoy</p>
+              <p style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--secondary)' }}>{formatCLP(todayProfit)}</p>
+              <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Neta estimada</p>
+            </div>
+          </div>
+
+          {/* Sales list */}
+          {recentSales.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+              <History size={40} opacity={0.2} style={{ margin: '0 auto 0.75rem', display: 'block' }} />
+              <p>Sin ventas registradas</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {recentSales.map(sale => {
+                const saleDate = new Date(sale.date);
+                const isToday = saleDate.toDateString() === today;
+                return (
+                  <div key={sale.id} style={{
+                    background: 'var(--surface)', backdropFilter: 'blur(8px)',
+                    border: '1px solid var(--surface-border)', borderRadius: '12px',
+                    padding: '0.85rem',
+                    borderLeft: `3px solid ${isToday ? 'var(--secondary)' : 'var(--surface-border)'}`
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-main)', marginBottom: '0.15rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {sale.name}
+                        </p>
+                        <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                          {isToday ? saleDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : saleDate.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit' }) + ' ' + saleDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
+                          {' · '}{sale.paymentMethod || 'Efectivo'}
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0, marginLeft: '0.5rem' }}>
+                        <div style={{ textAlign: 'right' }}>
+                          <p style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--primary)' }}>{formatCLP(Number(sale.revenue) || 0)}</p>
+                          <p style={{ fontSize: '0.68rem', color: 'var(--secondary)' }}>+{formatCLP(Number(sale.profit) || 0)}</p>
+                        </div>
+                        <button
+                          onClick={() => cancelSale(sale)}
+                          style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '8px', padding: '0.4rem 0.5rem', cursor: 'pointer', color: 'var(--danger)', display: 'flex', alignItems: 'center' }}
+                          title="Anular venta"
+                        >
+                          <RotateCcw size={13} />
+                        </button>
+                      </div>
+                    </div>
+                    {sale.discountApplied > 0 && (
+                      <span style={{ fontSize: '0.68rem', background: 'rgba(16,185,129,0.12)', color: 'var(--secondary)', border: '1px solid rgba(16,185,129,0.25)', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 600 }}>
+                        ⭐ Promo -{ formatCLP(sale.discountApplied)}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Bottom Checkout Bar (only on products tab) ──── */}
+      {!checkoutStep && cartCount > 0 && activeTab === 'products' && (
         <div style={{
           background: 'var(--surface)', backdropFilter: 'blur(12px)',
           borderTop: '1px solid var(--surface-border)',
@@ -333,6 +437,56 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
               Cobrar {formatCLP(total)}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* ── Bottom Tab Bar ──────────────────────────── */}
+      {!checkoutStep && (
+        <div style={{
+          background: 'var(--surface)', backdropFilter: 'blur(12px)',
+          borderTop: '1px solid var(--surface-border)',
+          display: 'grid', gridTemplateColumns: '1fr 1fr',
+          flexShrink: 0
+        }}>
+          <button
+            onClick={() => setActiveTab('products')}
+            style={{
+              padding: '0.75rem 0.5rem', display: 'flex', flexDirection: 'column',
+              alignItems: 'center', gap: '0.2rem', border: 'none', cursor: 'pointer',
+              background: activeTab === 'products' ? 'rgba(79,70,229,0.12)' : 'transparent',
+              color: activeTab === 'products' ? 'var(--primary)' : 'var(--text-muted)',
+              borderTop: activeTab === 'products' ? '2px solid var(--primary)' : '2px solid transparent',
+              fontFamily: 'inherit', fontSize: '0.72rem', fontWeight: 600, transition: 'all 0.15s'
+            }}
+          >
+            <Store size={20} />
+            Productos
+            {cartCount > 0 && (
+              <span style={{ background: 'var(--primary)', color: 'white', borderRadius: '20px', padding: '0 0.4rem', fontSize: '0.65rem', fontWeight: 800, position: 'absolute', marginTop: '-0.5rem', marginLeft: '1.2rem' }}>
+                {cartCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            style={{
+              padding: '0.75rem 0.5rem', display: 'flex', flexDirection: 'column',
+              alignItems: 'center', gap: '0.2rem', border: 'none', cursor: 'pointer',
+              background: activeTab === 'history' ? 'rgba(16,185,129,0.08)' : 'transparent',
+              color: activeTab === 'history' ? 'var(--secondary)' : 'var(--text-muted)',
+              borderTop: activeTab === 'history' ? '2px solid var(--secondary)' : '2px solid transparent',
+              fontFamily: 'inherit', fontSize: '0.72rem', fontWeight: 600, transition: 'all 0.15s',
+              position: 'relative'
+            }}
+          >
+            <History size={20} />
+            Historial
+            {todaySales.length > 0 && (
+              <span style={{ background: 'var(--secondary)', color: 'white', borderRadius: '20px', padding: '0 0.4rem', fontSize: '0.65rem', fontWeight: 800 }}>
+                {todaySales.length}
+              </span>
+            )}
+          </button>
         </div>
       )}
 
