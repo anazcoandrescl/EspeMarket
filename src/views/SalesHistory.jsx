@@ -292,6 +292,7 @@ const SalesHistory = ({ sales, setSales, baskets, setBaskets, products, setProdu
             )}
           </tbody>
         </table>
+      </div>
     </div>
   );
 };
