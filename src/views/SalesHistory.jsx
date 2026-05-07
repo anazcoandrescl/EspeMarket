@@ -85,8 +85,8 @@ const SalesHistory = ({ sales, setSales, baskets, setBaskets, products, setProdu
       'Cantidad',
       'Precio Venta Unitario',
       'Costo Unitario',
-      'Ingreso Bruto (Total)',
-      'Ganancia Neta (Bolsillo)'
+      'Subtotal Bruto',
+      'Ganancia Neta'
     ];
 
     let csvContent = "\uFEFF" + headers.join(";") + "\n";
@@ -115,6 +115,25 @@ const SalesHistory = ({ sales, setSales, baskets, setBaskets, products, setProdu
           ];
           csvContent += row.join(";") + "\n";
         });
+        
+        if (sale.discountApplied > 0) {
+          const rowDiscount = [
+            sale.id,
+            fecha,
+            hora,
+            cleanRut(sale.customerRut || 'Consumidor Final'),
+            sale.paymentMethod || 'Efectivo',
+            'Descuento',
+            'Promocion',
+            '"Descuento Aplicado"',
+            1,
+            -sale.discountApplied,
+            0,
+            -sale.discountApplied,
+            -sale.discountApplied
+          ];
+          csvContent += rowDiscount.join(";") + "\n";
+        }
       } else {
         const row = [
           sale.id,
