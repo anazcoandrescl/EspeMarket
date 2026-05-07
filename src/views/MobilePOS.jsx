@@ -21,31 +21,36 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
     (p.category || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const calculateTotals = () => {
+  // Exact same logic as desktop POS
+  const calculateTotal = () => {
+    let rawTotal = 0;
+    let finalTotal = 0;
     const activeOffers = (offers || []).filter(o => o.active);
-    let finalTotal = 0, totalCost = 0, totalDiscount = 0;
     cart.forEach(item => {
-      const price = Number(item.sellPrice) || 0;
-      const qty = Number(item.quantity) || 1;
-      const buy = Number(item.buyPrice) || 0;
-      const sub = price * qty;
-      totalCost += buy * qty;
-      const offer = activeOffers.find(o =>
+      let itemTotal = (Number(item.sellPrice) || 0) * (Number(item.quantity) || 1);
+      rawTotal += itemTotal;
+      const applicableOffers = activeOffers.filter(o =>
         o.targetId?.toString() === item.id?.toString() && o.targetType === item.type
       );
-      if (offer) {
-        const discVal = Number(offer.discountValue) || 0;
-        const d = offer.discountType === 'percent' ? sub * (discVal / 100) : Math.min(discVal * qty, sub);
-        totalDiscount += d;
-        finalTotal += sub - d;
-      } else {
-        finalTotal += sub;
+      if (applicableOffers.length > 0) {
+        const offer = applicableOffers[0];
+        if (offer.type === 'bulk' && item.quantity >= offer.bulkMinQty) {
+          itemTotal = (Number(offer.bulkNewPrice) || 0) * item.quantity;
+        } else if (offer.type === 'nxm') {
+          const sets = Math.floor(item.quantity / offer.nxmBuy);
+          const remainder = item.quantity % offer.nxmBuy;
+          itemTotal = (sets * offer.nxmPay * (Number(item.sellPrice) || 0)) + (remainder * (Number(item.sellPrice) || 0));
+        } else if (offer.type === 'percentage') {
+          itemTotal = itemTotal * (1 - ((Number(offer.discountPercent) || 0) / 100));
+        }
       }
+      finalTotal += itemTotal;
     });
-    return { total: finalTotal, totalCost, totalDiscount };
+    return { rawTotal, finalTotal, totalDiscount: rawTotal - finalTotal };
   };
 
-  const { total, totalCost, totalDiscount } = calculateTotals();
+  const { rawTotal, finalTotal: total, totalDiscount } = calculateTotal();
+  const totalCost = cart.reduce((acc, item) => acc + ((Number(item.cost) || Number(item.buyPrice) || 0) * item.quantity), 0);
 
   const showAlert = (msg, type = 'success') => {
     setAlert({ msg, type });
