@@ -162,7 +162,7 @@ function App() {
                       className="glass-input" 
                       value={adminPass}
                       onChange={(e) => setAdminPass(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder=""
                       style={{ paddingLeft: '2.5rem', width: '100%' }}
                       required
                     />
@@ -189,7 +189,7 @@ function App() {
                       className="glass-input" 
                       value={posPass}
                       onChange={(e) => setPosPass(e.target.value)}
-                      placeholder="Ingresa el PIN (por defecto: 1234)"
+                      placeholder=""
                       style={{ paddingLeft: '2.5rem', width: '100%' }}
                       required
                       autoFocus
