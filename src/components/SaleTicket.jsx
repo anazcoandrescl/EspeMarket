@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Printer, MessageCircle, Download, ShoppingCart } from 'lucide-react';
+import { X, Printer, MessageCircle, Download, ShoppingCart, Mail } from 'lucide-react';
 import { formatCLP } from '../utils/format';
 
 const SaleTicket = ({ sale, settings, onClose }) => {
@@ -68,22 +68,17 @@ const SaleTicket = ({ sale, settings, onClose }) => {
     </html>
   `;
 
+  // Opens browser print/PDF dialog - user can choose "Save as PDF"
   const handlePrint = () => {
-    const pw = window.open('', '_blank', 'width=400,height=700');
+    const pw = window.open('', '_blank', 'width=500,height=800');
     pw.document.write(buildPrintHTML());
     pw.document.close();
     pw.focus();
-    setTimeout(() => { pw.print(); pw.close(); }, 500);
+    setTimeout(() => pw.print(), 600);
   };
 
-  const handleWhatsApp = () => {
-    const lines = ticketLines.map(l => `  ${l.qty}x ${l.name}: ${formatCLP(l.subtotal)}`).join('\n');
-    const discount = (Number(sale.discountApplied) || 0) > 0 ? `\n  Descuento: -${formatCLP(sale.discountApplied)}` : '';
-    const text = `🧾 *${businessName}*\n📅 ${date.toLocaleDateString('es-CL')} ${date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}\n🔖 Folio: ${sale.id}\n\n${lines}${discount}\n\n*TOTAL: ${formatCLP(Number(sale.revenue) || 0)}*\n💳 Pago: ${sale.paymentMethod || 'Efectivo'}\n\n¡Gracias por su compra!`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-  };
-
-  const handleDownload = () => {
+  // Download the ticket as a printable HTML file (open and save as PDF from browser)
+  const handleDownloadPDF = () => {
     const blob = new Blob([buildPrintHTML()], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -92,6 +87,37 @@ const SaleTicket = ({ sale, settings, onClose }) => {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  // Build plain text receipt for sharing
+  const buildTextReceipt = () => {
+    const lines = ticketLines.map(l => `  ${l.qty}x ${l.name}: ${formatCLP(l.subtotal)}`).join('\n');
+    const discount = (Number(sale.discountApplied) || 0) > 0 ? `\n  Descuento: -${formatCLP(sale.discountApplied)}` : '';
+    return `🧾 *${businessName}*\n📅 ${date.toLocaleDateString('es-CL')} ${date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}\n🔖 Folio: ${sale.id}\n\n${lines}${discount}\n\n*TOTAL: ${formatCLP(Number(sale.revenue) || 0)}*\n💳 Pago: ${sale.paymentMethod || 'Efectivo'}\n\n¡Gracias por su compra!\n${phone ? `📞 ${phone}` : ''}`;
+  };
+
+  // WhatsApp: download PDF + open WhatsApp with text receipt
+  const handleWhatsApp = () => {
+    // First download the HTML ticket so user can attach it if needed
+    handleDownloadPDF();
+    // Then open WhatsApp with the text receipt
+    setTimeout(() => {
+      const text = buildTextReceipt();
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }, 800);
+  };
+
+  // Email: open mail client with receipt in body
+  const handleEmail = () => {
+    const subject = encodeURIComponent(`Boleta ${businessName} - Folio ${sale.id}`);
+    const body = encodeURIComponent(
+      `${businessName}\nFolio: ${sale.id}\nFecha: ${date.toLocaleDateString('es-CL')} ${date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}\n\n` +
+      ticketLines.map(l => `${l.qty}x ${l.name}: ${formatCLP(l.subtotal)}`).join('\n') +
+      ((Number(sale.discountApplied) || 0) > 0 ? `\nDescuento: -${formatCLP(sale.discountApplied)}` : '') +
+      `\n\nTOTAL: ${formatCLP(Number(sale.revenue) || 0)}\nPago: ${sale.paymentMethod || 'Efectivo'}\n\n¡Gracias por su compra!\n${phone ? `Tel: ${phone}` : ''}`
+    );
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_self');
+  };
+
 
   return (
     <div
@@ -201,43 +227,55 @@ const SaleTicket = ({ sale, settings, onClose }) => {
             <ShoppingCart size={20} /> Nueva Venta
           </button>
 
-          {/* Secondary actions */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.6rem' }}>
+          {/* Secondary actions - 2x2 grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
             <button
               onClick={handlePrint}
               style={{
-                background: 'var(--panel-alt)', border: '1px solid var(--surface-border)',
-                borderRadius: '10px', cursor: 'pointer', color: 'var(--text-main)',
-                padding: '0.6rem', display: 'flex', flexDirection: 'column',
-                alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 600
+                background: '#1e40af', border: 'none',
+                borderRadius: '10px', cursor: 'pointer', color: 'white',
+                padding: '0.75rem 0.6rem', display: 'flex', flexDirection: 'column',
+                alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontWeight: 600
               }}
             >
-              <Printer size={18} />
-              Imprimir
+              <Printer size={20} />
+              🖨️ Imprimir / PDF
             </button>
             <button
               onClick={handleWhatsApp}
               style={{
                 background: '#25d366', border: 'none',
                 borderRadius: '10px', cursor: 'pointer', color: 'white',
-                padding: '0.6rem', display: 'flex', flexDirection: 'column',
-                alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 600
+                padding: '0.75rem 0.6rem', display: 'flex', flexDirection: 'column',
+                alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontWeight: 600
               }}
             >
-              <MessageCircle size={18} />
-              WhatsApp
+              <MessageCircle size={20} />
+              💬 WhatsApp
             </button>
             <button
-              onClick={handleDownload}
+              onClick={handleEmail}
+              style={{
+                background: '#7c3aed', border: 'none',
+                borderRadius: '10px', cursor: 'pointer', color: 'white',
+                padding: '0.75rem 0.6rem', display: 'flex', flexDirection: 'column',
+                alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontWeight: 600
+              }}
+            >
+              <Mail size={20} />
+              ✉️ Correo
+            </button>
+            <button
+              onClick={handleDownloadPDF}
               style={{
                 background: 'var(--panel-alt)', border: '1px solid var(--surface-border)',
                 borderRadius: '10px', cursor: 'pointer', color: 'var(--text-main)',
-                padding: '0.6rem', display: 'flex', flexDirection: 'column',
-                alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 600
+                padding: '0.75rem 0.6rem', display: 'flex', flexDirection: 'column',
+                alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontWeight: 600
               }}
             >
-              <Download size={18} />
-              Guardar
+              <Download size={20} />
+              ⬇️ Descargar
             </button>
           </div>
         </div>
