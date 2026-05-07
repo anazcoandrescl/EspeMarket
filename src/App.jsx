@@ -29,9 +29,7 @@ function App() {
   const [settings, setSettings] = useLocalStorage('canasta_settings', {
     businessName: 'EspeMarket',
     phone: '',
-    logo: '',
-    adminPin: '1234',
-    posPin: '1234'
+    logo: ''
   });
   const [theme, setTheme] = useLocalStorage('canasta_theme', 'auto');
 
@@ -80,19 +78,29 @@ function App() {
   const [showPosLogin, setShowPosLogin] = useState(false);
   const [adminUser, setAdminUser] = useState('');
   const [adminPass, setAdminPass] = useState('');
+  const [posUser, setPosUser] = useState('');
   const [posPass, setPosPass] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  const handlePosLogin = (e) => {
+  const handlePosLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
-    if (posPass === (settings.posPin || '1234')) {
+    
+    const email = posUser.includes('@') ? posUser : `${posUser.toLowerCase()}@espemarket.com`;
+    
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: posPass,
+    });
+
+    if (error) {
+      setLoginError('Usuario o contraseña incorrectos.');
+    } else {
       setAccessRole('pos');
       setActiveTab('pos');
       setShowPosLogin(false);
+      setPosUser('');
       setPosPass('');
-    } else {
-      setLoginError('PIN incorrecto para Caja.');
     }
   };
 
@@ -181,7 +189,24 @@ function App() {
                 {loginError && <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderRadius: '8px', border: '1px solid var(--danger)', fontSize: '0.9rem', textAlign: 'center' }}>{loginError}</div>}
                 
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>PIN de Caja</label>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Usuario de Caja</label>
+                  <div style={{ position: 'relative' }}>
+                    <User size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                    <input 
+                      type="text" 
+                      className="glass-input" 
+                      value={posUser}
+                      onChange={(e) => setPosUser(e.target.value)}
+                      placeholder=""
+                      style={{ paddingLeft: '2.5rem', width: '100%' }}
+                      required
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Contraseña</label>
                   <div style={{ position: 'relative' }}>
                     <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                     <input 
@@ -192,7 +217,6 @@ function App() {
                       placeholder=""
                       style={{ paddingLeft: '2.5rem', width: '100%' }}
                       required
-                      autoFocus
                     />
                   </div>
                 </div>
