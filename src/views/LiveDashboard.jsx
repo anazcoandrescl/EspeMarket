@@ -199,8 +199,12 @@ const LiveDashboard = ({ products, baskets, sales = [] }) => {
                       <DollarSign size={16} />
                     </div>
                     <div>
-                      <p style={{ fontWeight: 'bold', margin: 0 }}>Venta: {s.name}</p>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>{d.toLocaleDateString()} - {d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                      <p style={{ fontWeight: 'bold', margin: 0, textTransform: 'capitalize' }}>
+                        {s.name.replace('Venta POS: ', '')}
+                      </p>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+                        {d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • Vendido por: <span style={{ color: 'var(--text-main)' }}>{s.seller || 'Cajero'}</span>
+                      </p>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>

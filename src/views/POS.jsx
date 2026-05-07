@@ -135,9 +135,16 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
 
     // Register sale
     const saleItems = cart.map(item => `${item.quantity}x ${item.name}`).join(', ');
+    
+    // Get seller from localStorage role
+    const accessRoleRaw = localStorage.getItem('canasta_access_role');
+    const accessRole = accessRoleRaw ? JSON.parse(accessRoleRaw) : 'pos';
+    const sellerName = accessRole === 'admin' ? 'Administrador' : 'Cajero';
+
     const newSale = {
       id: generateCode('VNT'),
-      name: `Venta POS: ${saleItems.length > 30 ? saleItems.substring(0, 30) + '...' : saleItems}`,
+      name: saleItems.length > 40 ? saleItems.substring(0, 40) + '...' : saleItems,
+      seller: sellerName,
       revenue: total,
       profit: total - totalCost,
       date: new Date().toISOString(),
