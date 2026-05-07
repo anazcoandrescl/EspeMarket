@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Cloud, CloudOff, RefreshCw } from 'lucide-react';
 
@@ -6,11 +6,71 @@ const SUPABASE_URL = 'https://thpncsayykhidafheamb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_GH5XLBnXGl7TyCu25HPQOw_OclWkOIh';
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+const MAX_RETRIES = 5;
+
 const SupabaseSync = ({ inline = false }) => {
   const [status, setStatus] = useState('connecting'); // connecting, synced, error, syncing
+  const [retryCount, setRetryCount] = useState(0);
+  const [lastError, setLastError] = useState('');
   const isSyncingFromRemote = useRef(false);
   const debounceTimer = useRef(null);
+  const retryTimer = useRef(null);
   const channelRef = useRef(null);
+
+  const syncToSupabase = useCallback(async (isRetry = false) => {
+    try {
+      setStatus('syncing');
+
+      const st = JSON.parse(localStorage.getItem('canasta_settings') || '{}');
+      st._offers_db = JSON.parse(localStorage.getItem('canasta_offers') || '[]');
+
+      const payload = {
+        products: JSON.parse(localStorage.getItem('canasta_products') || '[]'),
+        baskets: JSON.parse(localStorage.getItem('canasta_baskets') || '[]'),
+        sales: JSON.parse(localStorage.getItem('canasta_sales') || '[]'),
+        categories: JSON.parse(localStorage.getItem('canasta_categories') || '[]'),
+        settings: st
+      };
+
+      const { error } = await supabase
+        .from('app_data')
+        .upsert({ id: 1, ...payload });
+
+      if (error) throw error;
+
+      // Broadcast to other browsers instantly
+      if (channelRef.current) {
+        channelRef.current.send({
+          type: 'broadcast',
+          event: 'db-update',
+          payload: payload
+        });
+      }
+
+      setStatus('synced');
+      setRetryCount(0);
+      setLastError('');
+    } catch (err) {
+      console.error("Sync error", err);
+      setLastError(err.message || 'Error desconocido');
+
+      const currentRetry = isRetry ? retryCount + 1 : 1;
+      setRetryCount(currentRetry);
+
+      if (currentRetry < MAX_RETRIES) {
+        // Exponential backoff: 2s, 4s, 8s, 16s...
+        const delay = Math.min(2000 * Math.pow(2, currentRetry - 1), 30000);
+        console.log(`Reintentando en ${delay / 1000}s (intento ${currentRetry}/${MAX_RETRIES})...`);
+        if (retryTimer.current) clearTimeout(retryTimer.current);
+        retryTimer.current = setTimeout(() => {
+          syncToSupabase(true);
+        }, delay);
+        setStatus('error');
+      } else {
+        setStatus('error');
+      }
+    }
+  }, [retryCount]);
 
   useEffect(() => {
     // 1. Initial Load
@@ -24,7 +84,7 @@ const SupabaseSync = ({ inline = false }) => {
 
         if (error) {
           if (error.code === 'PGRST116') {
-            // Row doesn't exist, we should push current local storage
+            // Row doesn't exist, push current local storage
             syncToSupabase();
           } else {
             throw error;
@@ -44,19 +104,23 @@ const SupabaseSync = ({ inline = false }) => {
             localStorage.setItem('canasta_settings', JSON.stringify(st));
           }
           window.dispatchEvent(new Event('local-storage'));
-          
+
           setTimeout(() => { isSyncingFromRemote.current = false; }, 100);
           setStatus('synced');
         }
       } catch (err) {
         console.error("Supabase load error", err);
+        setLastError(err.message || 'Error desconocido');
         setStatus('error');
+        // Auto-retry initial load after 3s
+        if (retryTimer.current) clearTimeout(retryTimer.current);
+        retryTimer.current = setTimeout(() => loadData(), 3000);
       }
     };
 
     loadData();
 
-    // 2. Realtime Subscription (Using Broadcast for speed and bypassing table-level realtime limits)
+    // 2. Realtime Subscription
     channelRef.current = supabase.channel('canasta-sync-room');
     channelRef.current
       .on(
@@ -78,26 +142,26 @@ const SupabaseSync = ({ inline = false }) => {
             localStorage.setItem('canasta_settings', JSON.stringify(st));
           }
           window.dispatchEvent(new Event('local-storage'));
-          
+
           setTimeout(() => { isSyncingFromRemote.current = false; }, 100);
         }
       )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-           setStatus('synced');
+      .subscribe((subStatus) => {
+        if (subStatus === 'SUBSCRIBED') {
+          setStatus(prev => prev === 'connecting' ? 'synced' : prev);
         }
       });
 
     // 3. Listen to Local Changes
     const handleLocalChange = () => {
       if (isSyncingFromRemote.current) return;
-      
+
       setStatus('syncing');
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
-      
+
       debounceTimer.current = setTimeout(() => {
         syncToSupabase();
-      }, 300); // 300ms debounce (sincronización rápida)
+      }, 300);
     };
 
     window.addEventListener('local-storage', handleLocalChange);
@@ -106,44 +170,14 @@ const SupabaseSync = ({ inline = false }) => {
       window.removeEventListener('local-storage', handleLocalChange);
       if (channelRef.current) supabase.removeChannel(channelRef.current);
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      if (retryTimer.current) clearTimeout(retryTimer.current);
     };
   }, []);
 
-  const syncToSupabase = async () => {
-    try {
-      setStatus('syncing');
-      
-      const st = JSON.parse(localStorage.getItem('canasta_settings') || '{}');
-      st._offers_db = JSON.parse(localStorage.getItem('canasta_offers') || '[]');
-      
-      const payload = {
-        products: JSON.parse(localStorage.getItem('canasta_products') || '[]'),
-        baskets: JSON.parse(localStorage.getItem('canasta_baskets') || '[]'),
-        sales: JSON.parse(localStorage.getItem('canasta_sales') || '[]'),
-        categories: JSON.parse(localStorage.getItem('canasta_categories') || '[]'),
-        settings: st
-      };
-
-      const { error } = await supabase
-        .from('app_data')
-        .upsert({ id: 1, ...payload });
-
-      if (error) throw error;
-      
-      // Broadcast to other browsers instantly
-      if (channelRef.current) {
-        channelRef.current.send({
-          type: 'broadcast',
-          event: 'db-update',
-          payload: payload
-        });
-      }
-
-      setStatus('synced');
-    } catch (err) {
-      console.error("Sync error", err);
-      setStatus('error');
-    }
+  const handleManualRetry = () => {
+    if (retryTimer.current) clearTimeout(retryTimer.current);
+    setRetryCount(0);
+    syncToSupabase();
   };
 
   const style = inline ? {
@@ -153,12 +187,26 @@ const SupabaseSync = ({ inline = false }) => {
   };
 
   return (
-    <div style={style}>
+    <div style={style} title={lastError ? `Último error: ${lastError}` : ''}>
       {status === 'connecting' && <><RefreshCw size={14} className="spin" color="var(--text-muted)" /> <span>Conectando...</span></>}
       {status === 'syncing' && <><RefreshCw size={14} className="spin" color="var(--primary)" /> <span style={{color: 'var(--primary)'}}>Sincronizando...</span></>}
       {status === 'synced' && <><Cloud size={14} color="#10B981" /> <span style={{color: '#10B981'}}>Sincronizado en la nube</span></>}
-      {status === 'error' && <><CloudOff size={14} color="var(--danger)" /> <span style={{color: 'var(--danger)'}}>Error de sincronización</span></>}
-      
+      {status === 'error' && (
+        <>
+          <CloudOff size={14} color="var(--danger)" />
+          <span style={{color: 'var(--danger)'}}>
+            Sin conexión {retryCount > 0 && retryCount < MAX_RETRIES ? `(reintentando...)` : ''}
+          </span>
+          <button
+            onClick={handleManualRetry}
+            title="Reintentar sincronización"
+            style={{ background: 'none', border: '1px solid var(--danger)', borderRadius: '6px', color: 'var(--danger)', cursor: 'pointer', padding: '0.1rem 0.4rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}
+          >
+            <RefreshCw size={11} /> Reintentar
+          </button>
+        </>
+      )}
+
       <style>{`
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .spin { animation: spin 1s linear infinite; }
