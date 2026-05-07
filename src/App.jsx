@@ -136,7 +136,6 @@ function App() {
   if (accessRole === null) {
     return (
       <>
-        <SupabaseSync />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)', padding: '2rem' }}>
           <div className="glass-panel" style={{ padding: '3rem', maxWidth: '500px', width: '100%', textAlign: 'center', position: 'relative' }}>
             {showAdminLogin ? (
