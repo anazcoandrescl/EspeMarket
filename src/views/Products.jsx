@@ -42,6 +42,27 @@ const Products = ({ products, setProducts, categories, setCategories }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [priceAlerts, setPriceAlerts] = useState([]);
   const [infoProduct, setInfoProduct] = useState(null);
+  
+  // Quick Adjust State
+  const [quickAdjustProduct, setQuickAdjustProduct] = useState('');
+  const [quickAdjustQty, setQuickAdjustQty] = useState('');
+
+  const applyQuickAdjust = () => {
+    if (!quickAdjustProduct || !quickAdjustQty) return;
+    const qty = parseFloat(quickAdjustQty);
+    if (isNaN(qty)) return;
+
+    setProducts(products.map(p => {
+      if (p.id.toString() === quickAdjustProduct.toString()) {
+        return { ...p, stock: Math.max(0, (p.stock || 0) + qty) };
+      }
+      return p;
+    }));
+    
+    setQuickAdjustProduct('');
+    setQuickAdjustQty('');
+    alert('Stock actualizado con éxito.');
+  };
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -337,6 +358,44 @@ const Products = ({ products, setProducts, categories, setCategories }) => {
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{ paddingLeft: '2.5rem' }}
           />
+        </div>
+      </div>
+
+      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', display: 'flex', gap: '1rem', alignItems: 'flex-end', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+        <div style={{ flex: 2 }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 'bold' }}>⚡ Ajuste Rápido de Stock</label>
+          <select 
+            className="glass-input" 
+            style={{ width: '100%', padding: '0.6rem' }}
+            value={quickAdjustProduct}
+            onChange={(e) => setQuickAdjustProduct(e.target.value)}
+          >
+            <option value="">Selecciona un producto para actualizar...</option>
+            {[...products].sort((a,b) => a.name.localeCompare(b.name)).map(p => (
+              <option key={p.id} value={p.id}>{p.name} (Stock actual: {p.stock || 0})</option>
+            ))}
+          </select>
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Cantidad (Ej: 50 o -5)</label>
+          <input 
+            type="number" 
+            className="glass-input" 
+            style={{ width: '100%', padding: '0.6rem' }}
+            value={quickAdjustQty}
+            onChange={(e) => setQuickAdjustQty(e.target.value)}
+            placeholder="+50 o -10"
+          />
+        </div>
+        <div>
+          <button 
+            className="glass-button" 
+            onClick={applyQuickAdjust}
+            disabled={!quickAdjustProduct || !quickAdjustQty}
+            style={{ background: '#3b82f6', padding: '0.6rem 1.5rem' }}
+          >
+            Aplicar Ajuste
+          </button>
         </div>
       </div>
 
