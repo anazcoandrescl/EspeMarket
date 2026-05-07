@@ -11,7 +11,8 @@ import SalesHistory from './views/SalesHistory';
 import LiveDashboard from './views/LiveDashboard';
 import POS from './views/POS';
 import Offers from './views/Offers';
-import { Calculator as CalcIcon, TrendingUp, Settings as SettingsIcon, History, Activity, LayoutDashboard, Sun, Moon, Monitor, Store, User, Lock, Tag } from 'lucide-react';
+import DailyClosure from './views/DailyClosure';
+import { Calculator as CalcIcon, TrendingUp, Settings as SettingsIcon, History, Activity, LayoutDashboard, Sun, Moon, Monitor, Store, User, Lock, Tag, ClipboardList } from 'lucide-react';
 import SupabaseSync, { supabase } from './components/SupabaseSync';
 
 function App() {
@@ -54,7 +55,7 @@ function App() {
       case 'live':
         return <LiveDashboard products={products} baskets={baskets} sales={sales} />;
       case 'pos':
-        return <POS products={products} setProducts={setProducts} baskets={baskets} setBaskets={setBaskets} sales={sales} setSales={setSales} offers={offers} />;
+        return <POS products={products} setProducts={setProducts} baskets={baskets} setBaskets={setBaskets} sales={sales} setSales={setSales} offers={offers} settings={settings} />;
       case 'offers':
         return <Offers offers={offers} setOffers={setOffers} products={products} baskets={baskets} />;
       case 'products':
@@ -62,7 +63,9 @@ function App() {
       case 'baskets':
         return <Baskets products={products} setProducts={setProducts} baskets={baskets} setBaskets={setBaskets} settings={settings} sales={sales} setSales={setSales} />;
       case 'sales':
-        return <SalesHistory sales={sales} setSales={setSales} baskets={baskets} setBaskets={setBaskets} products={products} setProducts={setProducts} />;
+        return <SalesHistory sales={sales} setSales={setSales} baskets={baskets} setBaskets={setBaskets} products={products} setProducts={setProducts} settings={settings} />;
+      case 'closure':
+        return <DailyClosure sales={sales} products={products} settings={settings} />;
       case 'calculator':
         return <Calculator />;
       case 'finances':
@@ -348,6 +351,14 @@ function App() {
           >
             <History size={20} />
             Historial de Ventas
+          </button>
+          <button 
+            className={`nav-item ${activeTab === 'closure' ? 'active' : ''}`}
+            onClick={() => setActiveTab('closure')}
+            style={{ background: 'transparent', border: 'none', width: '100%', textAlign: 'left' }}
+          >
+            <ClipboardList size={20} />
+            Cierre de Caja
           </button>
           <button 
             className={`nav-item ${activeTab === 'calculator' ? 'active' : ''}`}

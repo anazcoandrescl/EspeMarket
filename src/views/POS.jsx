@@ -1,17 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, ShoppingCart, Minus, Plus, Trash2, DollarSign, Store, Maximize, Keyboard, KeyboardOff, LogOut } from 'lucide-react';
+import { Search, ShoppingCart, Minus, Plus, Trash2, DollarSign, Store, Maximize, Keyboard, KeyboardOff, LogOut, Receipt, AlertTriangle } from 'lucide-react';
 import { formatCLP, generateCode, formatRut } from '../utils/format';
+import SaleTicket from '../components/SaleTicket';
 
-const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setSales, offers = [] }) => {
+const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setSales, offers = [], settings }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState([]);
   const [keyboardMode, setKeyboardMode] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [quantityPrompt, setQuantityPrompt] = useState(null); // { item, quantity }
-  const [alertPrompt, setAlertPrompt] = useState(null); // { message, type: 'error' | 'success' }
-  const [checkoutStep, setCheckoutStep] = useState(null); // 'rut' | 'payment' | null
+  const [quantityPrompt, setQuantityPrompt] = useState(null);
+  const [alertPrompt, setAlertPrompt] = useState(null);
+  const [checkoutStep, setCheckoutStep] = useState(null);
   const [customerRut, setCustomerRut] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Efectivo');
+  const [ticketSale, setTicketSale] = useState(null); // sale to show ticket for
+  const [stockAlerts, setStockAlerts] = useState([]); // low stock after sale
   const searchInputRef = useRef(null);
   const qtyInputRef = useRef(null);
   const rutInputRef = useRef(null);
@@ -153,12 +156,17 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
       customerRut: customerRut || 'Consumidor Final',
       paymentMethod: paymentMethod
     };
-    
+
     setSales([...sales, newSale]);
+
+    // Check for low stock alerts after deducting stock
+    const lowStock = newProducts.filter(p => (p.stock || 0) <= (p.minStock || 5));
+    if (lowStock.length > 0) setStockAlerts(lowStock);
+
     setCart([]);
     setCheckoutStep(null);
     setCustomerRut('');
-    setAlertPrompt({ message: '¡Venta realizada con éxito!', type: 'success' });
+    setTicketSale(newSale); // Open ticket modal automatically
   };
 
   const filteredItems = allItems.filter(p => 
@@ -290,8 +298,41 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
   }, [keyboardMode, filteredItems, cart, products, baskets, quantityPrompt, selectedIndex, alertPrompt, checkoutStep, customerRut, paymentMethod]);
 
   return (
+    <>
+      {/* Sale Ticket Modal */}
+      {ticketSale && (
+        <SaleTicket
+          sale={ticketSale}
+          settings={settings}
+          onClose={() => setTicketSale(null)}
+        />
+      )}
+
+      {/* Low Stock Alerts Banner */}
+      {stockAlerts.length > 0 && (
+        <div style={{
+          position: 'fixed', top: '1rem', right: '1rem', zIndex: 9998,
+          background: 'rgba(239,68,68,0.95)', color: 'white', borderRadius: '12px',
+          padding: '1rem 1.25rem', maxWidth: '320px', boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+          backdropFilter: 'blur(8px)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+            <p style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <AlertTriangle size={16} /> ⚠️ Stock Bajo
+            </p>
+            <button onClick={() => setStockAlerts([])} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: 0 }}>✕</button>
+          </div>
+          {stockAlerts.map(p => (
+            <p key={p.id} style={{ fontSize: '0.85rem', opacity: 0.95 }}>
+              · {p.name}: quedan solo <strong>{p.stock || 0}</strong> unidades
+            </p>
+          ))}
+        </div>
+      )}
+
     <div style={{ display: 'flex', gap: '2rem', height: 'calc(100vh - 4rem)' }}>
       {/* Product List */}
+
       <div style={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
         <div className="header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1><Store size={28} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.5rem', color: 'var(--primary)' }} />Punto de Venta</h1>
@@ -572,6 +613,7 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
         </div>
       )}
     </div>
+    </>
   );
 };
 

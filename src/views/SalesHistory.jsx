@@ -1,9 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { RotateCcw, Search, Calendar, DollarSign, TrendingUp, History, Download, FileSpreadsheet } from 'lucide-react';
+import { RotateCcw, Search, Calendar, DollarSign, TrendingUp, History, Download, FileSpreadsheet, Receipt } from 'lucide-react';
 import { formatCLP, cleanRut } from '../utils/format';
+import SaleTicket from '../components/SaleTicket';
 
-const SalesHistory = ({ sales, setSales, baskets, setBaskets, products, setProducts }) => {
-  const [filter, setFilter] = useState('month'); // 'all', 'today', 'month', 'year'
+const SalesHistory = ({ sales, setSales, baskets, setBaskets, products, setProducts, settings }) => {
+  const [filter, setFilter] = useState('month');
+  const [viewingTicket, setViewingTicket] = useState(null);
 
   // Anular venta
   const cancelSale = (sale) => {
@@ -278,13 +280,22 @@ const SalesHistory = ({ sales, setSales, baskets, setBaskets, products, setProdu
                     <td>{formatCLP(Number(sale.revenue) || 0)}</td>
                     <td style={{ color: '#10B981', fontWeight: '500' }}>{formatCLP(Number(sale.profit) || 0)}</td>
                     <td style={{ textAlign: 'center' }}>
-                      <button 
-                        onClick={() => cancelSale(sale)}
-                        style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: 'var(--danger)', cursor: 'pointer', padding: '0.4rem 0.75rem', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', margin: '0 auto' }}
-                        title="Anular venta y devolver stock"
-                      >
-                        <RotateCcw size={14} /> Anular
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
+                        <button
+                          onClick={() => setViewingTicket(sale)}
+                          style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: '#3b82f6', cursor: 'pointer', padding: '0.4rem 0.6rem', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem' }}
+                          title="Ver boleta"
+                        >
+                          <Receipt size={14} />
+                        </button>
+                        <button 
+                          onClick={() => cancelSale(sale)}
+                          style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: 'var(--danger)', cursor: 'pointer', padding: '0.4rem 0.6rem', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem' }}
+                          title="Anular venta y devolver stock"
+                        >
+                          <RotateCcw size={14} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )
@@ -293,6 +304,15 @@ const SalesHistory = ({ sales, setSales, baskets, setBaskets, products, setProdu
           </tbody>
         </table>
       </div>
+
+      {/* Ticket modal from history */}
+      {viewingTicket && (
+        <SaleTicket
+          sale={viewingTicket}
+          settings={settings}
+          onClose={() => setViewingTicket(null)}
+        />
+      )}
     </div>
   );
 };

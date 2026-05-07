@@ -64,6 +64,24 @@ const LiveDashboard = ({ products, baskets, sales = [] }) => {
       .slice(0, 4);
   }, [safeSales]);
 
+  // Hourly sales distribution (today)
+  const hourlyData = useMemo(() => {
+    const hours = Array.from({ length: 24 }, (_, i) => ({
+      hour: `${String(i).padStart(2, '0')}:00`,
+      Ventas: 0,
+      Ingresos: 0
+    }));
+    salesToday.forEach(s => {
+      const h = new Date(s.date).getHours();
+      hours[h].Ventas += 1;
+      hours[h].Ingresos += (Number(s.revenue) || 0);
+    });
+    // Only return hours with sales or business hours 8-22
+    return hours.filter((h, i) => h.Ventas > 0 || (i >= 8 && i <= 22));
+  }, [salesToday]);
+
+  const peakHour = hourlyData.reduce((best, h) => h.Ingresos > (best?.Ingresos || 0) ? h : best, null);
+
   const COLORS = ['#60a5fa', '#34d399', '#fbbf24', '#f472b6'];
 
   return (
@@ -215,6 +233,38 @@ const LiveDashboard = ({ products, baskets, sales = [] }) => {
               );
             })}
           </div>
+        )}
+      </div>
+      </div>
+    </div>
+
+      {/* Hourly Sales Chart */}
+      <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <h2 style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Clock size={20} color="var(--primary)" /> Ventas por Hora del Día (Hoy)
+          </h2>
+          {peakHour && peakHour.Ventas > 0 && (
+            <div style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '8px', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+              ⚡ Hora pico: <strong>{peakHour.hour}</strong> — {formatCLP(peakHour.Ingresos)}
+            </div>
+          )}
+        </div>
+        {salesToday.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem' }}>Sin ventas hoy aún. ¡A vender!</p>
+        ) : (
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={hourlyData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--surface-border)" />
+              <XAxis dataKey="hour" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--text-muted)' }} tickFormatter={v => v > 0 ? `$${(v/1000).toFixed(0)}k` : ''} />
+              <Tooltip
+                contentStyle={{ background: 'var(--panel)', border: '1px solid var(--surface-border)', borderRadius: '8px', fontSize: '0.85rem' }}
+                formatter={(value, name) => name === 'Ingresos' ? [formatCLP(value), 'Ingresos'] : [value, 'Ventas']}
+              />
+              <Bar dataKey="Ingresos" fill="#60a5fa" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         )}
       </div>
     </div>
