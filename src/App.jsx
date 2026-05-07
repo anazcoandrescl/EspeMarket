@@ -63,7 +63,7 @@ function App() {
       case 'baskets':
         return <Baskets products={products} setProducts={setProducts} baskets={baskets} setBaskets={setBaskets} settings={settings} sales={sales} setSales={setSales} />;
       case 'sales':
-        return <SalesHistory sales={sales} setSales={setSales} baskets={baskets} setBaskets={setBaskets} products={products} setProducts={setProducts} settings={settings} />;
+        return <SalesHistory sales={sales} setSales={setSales} baskets={baskets} setBaskets={setBaskets} products={products} setProducts={setProducts} />;
       case 'closure':
         return <DailyClosure sales={sales} products={products} settings={settings} />;
       case 'calculator':
