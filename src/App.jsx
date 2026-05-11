@@ -55,7 +55,7 @@ function App() {
       case 'live':
         return <LiveDashboard products={products} baskets={baskets} sales={sales} />;
       case 'pos':
-        return <POS products={products} setProducts={setProducts} baskets={baskets} setBaskets={setBaskets} sales={sales} setSales={setSales} offers={offers} settings={settings} />;
+        return <POS products={products} setProducts={setProducts} baskets={baskets} setBaskets={setBaskets} sales={sales} setSales={setSales} offers={offers} settings={settings} categories={categories} />;
       case 'offers':
         return <Offers offers={offers} setOffers={setOffers} products={products} baskets={baskets} />;
       case 'products':
@@ -270,7 +270,7 @@ function App() {
         <div className="app-layout" style={{ gridTemplateColumns: '1fr' }}>
         <main className="main-content" style={{ padding: 0 }}>
           <div style={{ padding: '1.5rem' }}>
-            <POS onLogout={handleLogout} products={products} setProducts={setProducts} baskets={baskets} setBaskets={setBaskets} sales={sales} setSales={setSales} offers={offers} />
+            <POS onLogout={handleLogout} products={products} setProducts={setProducts} baskets={baskets} setBaskets={setBaskets} sales={sales} setSales={setSales} offers={offers} settings={settings} categories={categories} />
           </div>
         </main>
       </div>

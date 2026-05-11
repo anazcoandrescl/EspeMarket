@@ -4,7 +4,7 @@ import { formatCLP, generateCode, formatRut } from '../utils/format';
 import { useIsMobile } from '../hooks/useIsMobile';
 import MobilePOS from './MobilePOS';
 
-const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setSales, offers = [], settings }) => {
+const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setSales, offers = [], settings, categories = [] }) => {
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState([]);
@@ -21,7 +21,7 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
   const rutInputRef = useRef(null);
 
   if (isMobile) {
-    return <MobilePOS onLogout={onLogout} products={products} setProducts={setProducts} baskets={baskets} setBaskets={setBaskets} sales={sales} setSales={setSales} offers={offers} settings={settings} />;
+    return <MobilePOS onLogout={onLogout} products={products} setProducts={setProducts} baskets={baskets} setBaskets={setBaskets} sales={sales} setSales={setSales} offers={offers} settings={settings} categories={categories} />;
   }
 
   const toggleFullscreen = () => {
@@ -434,7 +434,7 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
                     transition: 'all 0.15s ease-out',
                     display: 'flex',
                     flexDirection: 'column',
-                    borderTop: `4px solid ${isSelected ? 'rgba(255,255,255,0.3)' : ((item.stock || 0) > 0 ? (item.type === 'basket' ? 'var(--secondary)' : 'var(--primary)') : 'var(--text-muted)')}`,
+                    borderTop: `4px solid ${isSelected ? 'rgba(255,255,255,0.3)' : ((item.stock || 0) > 0 ? (item.type === 'basket' ? 'var(--secondary)' : (categories?.find(c => c.name === item.category)?.color || 'var(--primary)')) : 'var(--text-muted)')}`,
                     boxShadow: isSelected ? '0 12px 30px rgba(59, 130, 246, 0.4)' : 'none',
                     backgroundColor: isSelected ? 'var(--primary)' : '',
                     color: isSelected ? '#ffffff' : '',

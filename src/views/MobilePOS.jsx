@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Search, ShoppingCart, Trash2, DollarSign, Store, AlertTriangle, LogOut, Check, History, X, RotateCcw, TrendingUp } from 'lucide-react';
 import { formatCLP, generateCode, formatRut } from '../utils/format';
 
-const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setSales, offers = [], settings }) => {
+const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setSales, offers = [], settings, categories = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState([]);
   const [checkoutStep, setCheckoutStep] = useState(null);
@@ -248,7 +248,7 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
             );
             const inStock = (Number(item.stock) || 0) > 0;
             const inCart = cart.find(c => c.id === item.id && c.type === item.type);
-            const accentColor = item.type === 'basket' ? 'var(--secondary)' : 'var(--primary)';
+            const accentColor = item.type === 'basket' ? 'var(--secondary)' : (categories?.find(c => c.name === item.category)?.color || 'var(--primary)');
 
             return (
               <button
