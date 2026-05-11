@@ -8,6 +8,7 @@ import MobilePOS from './MobilePOS';
 const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setSales, offers = [], settings, categories = [] }) => {
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [cart, setCart] = useState([]);
   const [keyboardMode, setKeyboardMode] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -189,10 +190,11 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
     setAlertPrompt({ message: '✅ ¡Venta registrada!', type: 'success' });
   };
 
-  const filteredItems = allItems.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (p.category || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = allItems.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || (p.category || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory || (selectedCategory === 'Canasta' && p.type === 'basket');
+    return matchesSearch && matchesCategory;
+  });
 
   // Reset selected index when search changes
   useEffect(() => {
@@ -386,18 +388,61 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
           </div>
         )}
 
-        <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
+        <div style={{ position: 'relative', marginBottom: '1rem' }}>
           <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input 
             ref={searchInputRef}
             type="text" 
             className="glass-input" 
-            placeholder="Buscar producto..." 
+            placeholder="Buscar producto o categoría..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{ paddingLeft: '2.5rem', borderColor: keyboardMode && !quantityPrompt ? 'var(--primary)' : 'var(--surface-border)' }}
             autoFocus={keyboardMode}
           />
+        </div>
+
+        {/* Category Chips */}
+        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', marginBottom: '1rem', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+          <button
+            onClick={() => { setSelectedCategory('all'); setSearchTerm(''); }}
+            style={{
+              padding: '0.4rem 1rem', borderRadius: '20px', whiteSpace: 'nowrap', cursor: 'pointer',
+              background: selectedCategory === 'all' ? 'var(--primary)' : 'var(--panel-alt)',
+              color: selectedCategory === 'all' ? 'white' : 'var(--text-main)',
+              border: `1px solid ${selectedCategory === 'all' ? 'var(--primary)' : 'var(--surface-border)'}`,
+              fontWeight: 600, fontSize: '0.85rem', transition: 'all 0.2s'
+            }}
+          >
+            Todos
+          </button>
+          {categories.map(c => (
+            <button
+              key={c.id}
+              onClick={() => { setSelectedCategory(c.name); setSearchTerm(''); }}
+              style={{
+                padding: '0.4rem 1rem', borderRadius: '20px', whiteSpace: 'nowrap', cursor: 'pointer',
+                background: selectedCategory === c.name ? c.color : 'var(--panel-alt)',
+                color: selectedCategory === c.name ? 'white' : 'var(--text-main)',
+                border: `1px solid ${selectedCategory === c.name ? c.color : 'var(--surface-border)'}`,
+                fontWeight: 600, fontSize: '0.85rem', transition: 'all 0.2s'
+              }}
+            >
+              {c.name}
+            </button>
+          ))}
+          <button
+            onClick={() => { setSelectedCategory('Canasta'); setSearchTerm(''); }}
+            style={{
+              padding: '0.4rem 1rem', borderRadius: '20px', whiteSpace: 'nowrap', cursor: 'pointer',
+              background: selectedCategory === 'Canasta' ? 'var(--secondary)' : 'var(--panel-alt)',
+              color: selectedCategory === 'Canasta' ? 'white' : 'var(--text-main)',
+              border: `1px solid ${selectedCategory === 'Canasta' ? 'var(--secondary)' : 'var(--surface-border)'}`,
+              fontWeight: 600, fontSize: '0.85rem', transition: 'all 0.2s'
+            }}
+          >
+            Canastas
+          </button>
         </div>
 
         <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>

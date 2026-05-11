@@ -5,6 +5,7 @@ import { formatCLP, generateCode, formatRut } from '../utils/format';
 
 const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setSales, offers = [], settings, categories = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [cart, setCart] = useState([]);
   const [checkoutStep, setCheckoutStep] = useState(null);
   const [customerRut, setCustomerRut] = useState('');
@@ -18,10 +19,11 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
     ...(baskets || []).map(b => ({ ...b, type: 'basket', category: 'Canasta' }))
   ];
 
-  const filteredItems = allItems.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.category || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = allItems.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || (p.category || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory || (selectedCategory === 'Canasta' && p.type === 'basket');
+    return matchesSearch && matchesCategory;
+  });
 
   // Exact same logic as desktop POS
   const calculateTotal = () => {
@@ -249,6 +251,49 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
             onChange={e => setSearchTerm(e.target.value)}
             style={{ paddingLeft: '2.1rem', fontSize: '0.9rem' }}
           />
+        </div>
+
+        {/* Category Chips */}
+        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingTop: '0.75rem', paddingBottom: '0.25rem', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+          <button
+            onClick={() => { setSelectedCategory('all'); setSearchTerm(''); }}
+            style={{
+              padding: '0.35rem 0.85rem', borderRadius: '20px', whiteSpace: 'nowrap', cursor: 'pointer',
+              background: selectedCategory === 'all' ? 'var(--primary)' : 'var(--panel-alt)',
+              color: selectedCategory === 'all' ? 'white' : 'var(--text-main)',
+              border: `1px solid ${selectedCategory === 'all' ? 'var(--primary)' : 'var(--surface-border)'}`,
+              fontWeight: 600, fontSize: '0.8rem', transition: 'all 0.2s'
+            }}
+          >
+            Todos
+          </button>
+          {categories.map(c => (
+            <button
+              key={c.id}
+              onClick={() => { setSelectedCategory(c.name); setSearchTerm(''); }}
+              style={{
+                padding: '0.35rem 0.85rem', borderRadius: '20px', whiteSpace: 'nowrap', cursor: 'pointer',
+                background: selectedCategory === c.name ? c.color : 'var(--panel-alt)',
+                color: selectedCategory === c.name ? 'white' : 'var(--text-main)',
+                border: `1px solid ${selectedCategory === c.name ? c.color : 'var(--surface-border)'}`,
+                fontWeight: 600, fontSize: '0.8rem', transition: 'all 0.2s'
+              }}
+            >
+              {c.name}
+            </button>
+          ))}
+          <button
+            onClick={() => { setSelectedCategory('Canasta'); setSearchTerm(''); }}
+            style={{
+              padding: '0.35rem 0.85rem', borderRadius: '20px', whiteSpace: 'nowrap', cursor: 'pointer',
+              background: selectedCategory === 'Canasta' ? 'var(--secondary)' : 'var(--panel-alt)',
+              color: selectedCategory === 'Canasta' ? 'white' : 'var(--text-main)',
+              border: `1px solid ${selectedCategory === 'Canasta' ? 'var(--secondary)' : 'var(--surface-border)'}`,
+              fontWeight: 600, fontSize: '0.8rem', transition: 'all 0.2s'
+            }}
+          >
+            Canastas
+          </button>
         </div>
       </div>
 
