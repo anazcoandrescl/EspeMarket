@@ -86,19 +86,25 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
   const removeFromCart = (id, type) => setCart(prev => prev.filter(c => !(c.id === id && c.type === type)));
 
   const processCheckout = () => {
-    const newProducts = products.map(p => {
-      const ci = cart.find(c => c.id === p.id && c.type === 'product');
-      return ci ? { ...p, stock: Math.max(0, (Number(p.stock) || 0) - ci.quantity) } : p;
+    setProducts(prevProducts => {
+      const updatedProducts = prevProducts.map(p => {
+        const ci = cart.find(c => c.id?.toString() === p.id?.toString() && c.type === 'product');
+        return ci ? { ...p, stock: Math.max(0, (Number(p.stock) || 0) - ci.quantity) } : p;
+      });
+      const lowStock = updatedProducts.filter(p => (Number(p.stock) || 0) <= (Number(p.minStock) || 5));
+      if (lowStock.length > 0) setStockAlerts(lowStock);
+      return updatedProducts;
     });
-    setProducts(newProducts);
-    setBaskets(baskets.map(b => {
-      const ci = cart.find(c => c.id === b.id && c.type === 'basket');
+
+    setBaskets(prevBaskets => prevBaskets.map(b => {
+      const ci = cart.find(c => c.id?.toString() === b.id?.toString() && c.type === 'basket');
       return ci ? { ...b, stock: Math.max(0, (Number(b.stock) || 0) - ci.quantity) } : b;
     }));
+
     const roleRaw = localStorage.getItem('canasta_access_role');
     const role = roleRaw ? JSON.parse(roleRaw) : 'pos';
     const saleItems = cart.map(i => `${i.quantity}x ${i.name}`).join(', ');
-    setSales([...sales, {
+    setSales(prevSales => [...prevSales, {
       id: generateCode('VNT'),
       name: saleItems.length > 40 ? saleItems.substring(0, 40) + '...' : saleItems,
       seller: role === 'admin' ? 'Administrador' : 'Cajero',
@@ -108,8 +114,6 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
       customerRut: customerRut || 'Consumidor Final',
       paymentMethod
     }]);
-    const lowStock = newProducts.filter(p => (Number(p.stock) || 0) <= (Number(p.minStock) || 5));
-    if (lowStock.length > 0) setStockAlerts(lowStock);
     setCart([]); setCheckoutStep(null); setCustomerRut('');
     showAlert('✅ ¡Venta registrada!', 'success');
   };

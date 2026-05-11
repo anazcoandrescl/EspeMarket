@@ -123,23 +123,29 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
     if (cart.length === 0) return;
 
     // Deduct stock
-    const newProducts = products.map(p => {
-      const cartItem = cart.find(item => item.id === p.id && item.type === 'product');
-      if (cartItem) {
-        return { ...p, stock: Math.max(0, (p.stock || 0) - cartItem.quantity) };
-      }
-      return p;
+    setProducts(prevProducts => {
+      const updatedProducts = prevProducts.map(p => {
+        const cartItem = cart.find(item => item.id?.toString() === p.id?.toString() && item.type === 'product');
+        if (cartItem) {
+          return { ...p, stock: Math.max(0, (p.stock || 0) - cartItem.quantity) };
+        }
+        return p;
+      });
+      
+      // Check for low stock alerts after deducting stock
+      const lowStock = updatedProducts.filter(p => (p.stock || 0) <= (p.minStock || 5));
+      if (lowStock.length > 0) setStockAlerts(lowStock);
+      
+      return updatedProducts;
     });
-    setProducts(newProducts);
 
-    const newBaskets = baskets.map(b => {
-      const cartItem = cart.find(item => item.id === b.id && item.type === 'basket');
+    setBaskets(prevBaskets => prevBaskets.map(b => {
+      const cartItem = cart.find(item => item.id?.toString() === b.id?.toString() && item.type === 'basket');
       if (cartItem) {
         return { ...b, stock: Math.max(0, (b.stock || 0) - cartItem.quantity) };
       }
       return b;
-    });
-    setBaskets(newBaskets);
+    }));
 
     // Register sale
     const saleItems = cart.map(item => `${item.quantity}x ${item.name}`).join(', ');
@@ -162,11 +168,7 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
       paymentMethod: paymentMethod
     };
 
-    setSales([...sales, newSale]);
-
-    // Check for low stock alerts after deducting stock
-    const lowStock = newProducts.filter(p => (p.stock || 0) <= (p.minStock || 5));
-    if (lowStock.length > 0) setStockAlerts(lowStock);
+    setSales(prevSales => [...prevSales, newSale]);
 
     setCart([]);
     setCheckoutStep(null);
