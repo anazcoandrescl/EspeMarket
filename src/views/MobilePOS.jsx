@@ -342,8 +342,8 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
                   }}>{inCart.quantity}</span>
                 )}
                 {item.imageUrl && (
-                  <div style={{ width: '100%', height: '80px', marginBottom: '0.2rem', borderRadius: '8px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)' }}>
-                    <img src={item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ width: '100%', height: '80px', marginBottom: '0.4rem', borderRadius: '8px', overflow: 'hidden', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src={item.imageUrl} alt={item.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                   </div>
                 )}
                 <span style={{
