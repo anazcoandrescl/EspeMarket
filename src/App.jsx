@@ -65,13 +65,21 @@ function App() {
 
       const listener = (e) =>
         root.setAttribute("data-theme", e.matches ? "light" : "dark");
-      window
-        .matchMedia("(prefers-color-scheme: light)")
-        .addEventListener("change", listener);
-      return () =>
-        window
-          .matchMedia("(prefers-color-scheme: light)")
-          .removeEventListener("change", listener);
+        
+      const mql = window.matchMedia("(prefers-color-scheme: light)");
+      if (mql.addEventListener) {
+        mql.addEventListener("change", listener);
+      } else if (mql.addListener) {
+        mql.addListener(listener);
+      }
+      
+      return () => {
+        if (mql.removeEventListener) {
+          mql.removeEventListener("change", listener);
+        } else if (mql.removeListener) {
+          mql.removeListener(listener);
+        }
+      };
     } else {
       root.setAttribute("data-theme", theme);
     }
