@@ -99,6 +99,8 @@ body {
   border: 1px solid var(--surface-border);
   border-radius: 16px;
   box-shadow: var(--glass-shadow);
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .glass-input {

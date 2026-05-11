@@ -241,10 +241,11 @@ function App() {
         <div
           style={{
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             minHeight: "100vh",
-            background: "var(--bg-main)",
+            width: "100%",
             color: "var(--text-main)",
             padding: "2rem",
           }}
@@ -257,6 +258,8 @@ function App() {
               width: "100%",
               textAlign: "center",
               position: "relative",
+              transform: "translateZ(0)",
+              WebkitTransform: "translateZ(0)",
             }}
           >
             {showAdminLogin ? (
