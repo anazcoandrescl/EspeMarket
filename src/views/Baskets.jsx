@@ -320,7 +320,7 @@ const Baskets = ({
         format: [canvas.width / 2, canvas.height / 2],
       });
       pdf.addImage(imgData, "PNG", 0, 0, canvas.width / 2, canvas.height / 2);
-      pdf.save(`Cotizacion_${basket.name.replace(/\s+/g, "_")}.pdf`);
+      pdf.save(`Cotizacion_${(basket.name || "Canasta").replace(/\s+/g, "_")}.pdf`);
     } catch (err) {
       console.error("Error generating PDF", err);
       alert("Hubo un error al generar la cotización.");

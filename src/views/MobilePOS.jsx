@@ -39,18 +39,23 @@ const MobilePOS = ({
   const [showHistory, setShowHistory] = useState(false);
 
   const allItems = [
-    ...(products || []).map((p) => ({ ...p, type: "product" })),
-    ...(baskets || []).map((b) => ({
+    ...(products || []).filter(p => p).map((p) => ({ ...p, type: "product", name: p.name || "Sin nombre" })),
+    ...(baskets || []).filter(b => b).map((b) => ({
       ...b,
       type: "basket",
       category: "Canasta",
+      name: b.name || "Canasta sin nombre"
     })),
   ];
 
   const filteredItems = allItems.filter((p) => {
+    const pName = (p.name || "").toLowerCase();
+    const pCat = (p.category || "").toLowerCase();
+    const sTerm = (searchTerm || "").toLowerCase();
+
     const matchesSearch =
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (p.category || "").toLowerCase().includes(searchTerm.toLowerCase());
+      pName.includes(sTerm) ||
+      pCat.includes(sTerm);
     const matchesCategory =
       selectedCategory === "all" ||
       p.category === selectedCategory ||

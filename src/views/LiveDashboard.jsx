@@ -494,7 +494,7 @@ const LiveDashboard = ({ products, baskets, sales = [] }) => {
                             textTransform: "capitalize",
                           }}
                         >
-                          {s.name.replace("Venta POS: ", "")}
+                          {(s.name || "").replace("Venta POS: ", "")}
                         </p>
                         <p
                           style={{
