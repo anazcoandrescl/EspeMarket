@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, ShoppingCart, Trash2, DollarSign, Store, AlertTriangle, LogOut, Check, History, X, RotateCcw, TrendingUp } from 'lucide-react';
+import { supabase } from '../components/SupabaseSync';
 import { formatCLP, generateCode, formatRut } from '../utils/format';
 
 const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setSales, offers = [], settings, categories = [] }) => {
@@ -85,7 +86,19 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
 
   const removeFromCart = (id, type) => setCart(prev => prev.filter(c => !(c.id === id && c.type === type)));
 
-  const processCheckout = () => {
+  const processCheckout = async () => {
+    try {
+      // Sincronización forzada antes de cobrar para evitar pisar stock de otras cajas
+      const { data } = await supabase.from('app_data').select('*').eq('id', 1).single();
+      if (data) {
+        if (data.products) localStorage.setItem('canasta_products', JSON.stringify(data.products));
+        if (data.baskets) localStorage.setItem('canasta_baskets', JSON.stringify(data.baskets));
+        if (data.sales) localStorage.setItem('canasta_sales', JSON.stringify(data.sales));
+      }
+    } catch (e) {
+      console.warn("No se pudo obtener el último estado antes del checkout", e);
+    }
+
     setProducts(prevProducts => {
       const updatedProducts = prevProducts.map(p => {
         const ci = cart.find(c => c.id?.toString() === p.id?.toString() && c.type === 'product');

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, ShoppingCart, Minus, Plus, Trash2, DollarSign, Store, Maximize, Keyboard, KeyboardOff, LogOut, AlertTriangle } from 'lucide-react';
 import { formatCLP, generateCode, formatRut } from '../utils/format';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { supabase } from '../components/SupabaseSync';
 import MobilePOS from './MobilePOS';
 
 const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setSales, offers = [], settings, categories = [] }) => {
@@ -119,8 +120,20 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
     setCheckoutStep('rut');
   };
 
-  const processCheckout = () => {
+  const processCheckout = async () => {
     if (cart.length === 0) return;
+
+    try {
+      // Sincronización forzada antes de cobrar para evitar pisar stock de otras cajas
+      const { data } = await supabase.from('app_data').select('*').eq('id', 1).single();
+      if (data) {
+        if (data.products) localStorage.setItem('canasta_products', JSON.stringify(data.products));
+        if (data.baskets) localStorage.setItem('canasta_baskets', JSON.stringify(data.baskets));
+        if (data.sales) localStorage.setItem('canasta_sales', JSON.stringify(data.sales));
+      }
+    } catch (e) {
+      console.warn("No se pudo obtener el último estado antes del checkout", e);
+    }
 
     // Deduct stock
     setProducts(prevProducts => {
