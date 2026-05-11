@@ -341,6 +341,11 @@ const MobilePOS = ({ onLogout, products, setProducts, baskets, setBaskets, sales
                     fontSize: '0.68rem', fontWeight: 800
                   }}>{inCart.quantity}</span>
                 )}
+                {item.imageUrl && (
+                  <div style={{ width: '100%', height: '80px', marginBottom: '0.2rem', borderRadius: '8px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)' }}>
+                    <img src={item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                )}
                 <span style={{
                   fontWeight: 700, fontSize: '0.82rem', lineHeight: 1.25,
                   color: 'var(--text-main)', paddingRight: inCart ? '1.4rem' : 0

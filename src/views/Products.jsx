@@ -40,7 +40,7 @@ const Products = ({ products, setProducts, categories, setCategories }) => {
   const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [editingProductId, setEditingProductId] = useState(null);
-  const [editForm, setEditForm] = useState({ name: '', cost: 0, sellPrice: 0, unit: '', category: '', stock: 0 });
+  const [editForm, setEditForm] = useState({ name: '', cost: 0, sellPrice: 0, unit: '', category: '', stock: 0, imageUrl: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [priceAlerts, setPriceAlerts] = useState([]);
   const [infoProduct, setInfoProduct] = useState(null);
@@ -189,6 +189,7 @@ const Products = ({ products, setProducts, categories, setCategories }) => {
         unit: editForm.unit || 'u',
         category: editForm.category || '',
         stock: parseFloat(editForm.stock) || 0,
+        imageUrl: editForm.imageUrl || '',
         sku: editForm.sku || generateNumericCode(12)
       }, ...products]);
     } else {
@@ -200,6 +201,7 @@ const Products = ({ products, setProducts, categories, setCategories }) => {
         unit: editForm.unit,
         category: editForm.category,
         stock: parseFloat(editForm.stock) || 0,
+        imageUrl: editForm.imageUrl || '',
         sku: editForm.sku || p.sku || generateNumericCode(12)
       } : p));
     }
@@ -207,7 +209,7 @@ const Products = ({ products, setProducts, categories, setCategories }) => {
   };
 
   const createManualProduct = () => {
-    setEditForm({ name: '', cost: 0, sellPrice: 0, unit: 'u', category: '', stock: 0, sku: '' });
+    setEditForm({ name: '', cost: 0, sellPrice: 0, unit: 'u', category: '', stock: 0, sku: '', imageUrl: '' });
     setEditingProductId('new');
     setSearchTerm('');
   };
@@ -407,6 +409,7 @@ const Products = ({ products, setProducts, categories, setCategories }) => {
           <thead>
             <tr>
               <th>SKU</th>
+              <th style={{ width: '40px' }}>Img</th>
               <th>Nombre del Producto</th>
               <th>Categoría</th>
               <th>Costo Unit.</th>
@@ -420,6 +423,7 @@ const Products = ({ products, setProducts, categories, setCategories }) => {
             {editingProductId === 'new' && (
               <tr style={{ background: 'rgba(16, 185, 129, 0.1)' }}>
                 <td><span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Automático</span></td>
+                <td><input className="glass-input" style={{ padding: '0.4rem', width: '60px' }} value={editForm.imageUrl || ''} onChange={e => setEditForm({...editForm, imageUrl: e.target.value})} placeholder="URL Foto" /></td>
                 <td><input className="glass-input" style={{ padding: '0.4rem', width: '100%' }} value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} placeholder="Nombre..." autoFocus /></td>
                 <td>
                   <select className="glass-input" style={{ padding: '0.4rem', width: '100%' }} value={editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})}>
@@ -449,6 +453,7 @@ const Products = ({ products, setProducts, categories, setCategories }) => {
                   return (
                     <tr key={product.id} style={{ background: 'rgba(255,255,255,0.05)' }}>
                       <td><span style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{product.sku || 'Automático'}</span></td>
+                      <td><input className="glass-input" style={{ padding: '0.4rem', width: '60px' }} value={editForm.imageUrl || ''} onChange={e => setEditForm({...editForm, imageUrl: e.target.value})} placeholder="URL Foto" /></td>
                       <td><input className="glass-input" style={{ padding: '0.4rem', width: '100%' }} value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} /></td>
                       <td>
                         <select className="glass-input" style={{ padding: '0.4rem', width: '100%' }} value={editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})}>
@@ -471,6 +476,13 @@ const Products = ({ products, setProducts, categories, setCategories }) => {
                 return (
                   <tr key={product.id}>
                     <td><span style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--primary)' }}>{product.sku || 'N/A'}</span></td>
+                    <td>
+                      {product.imageUrl ? (
+                        <img src={product.imageUrl} alt={product.name} style={{ width: '30px', height: '30px', objectFit: 'cover', borderRadius: '4px' }} />
+                      ) : (
+                        <div style={{ width: '30px', height: '30px', background: 'var(--surface-border)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: 'var(--text-muted)' }}>Sin</div>
+                      )}
+                    </td>
                     <td style={{ fontWeight: 500 }}>{product.name}</td>
                     <td>
                       {product.category && (() => {

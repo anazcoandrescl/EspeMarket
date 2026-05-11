@@ -508,6 +508,11 @@ const POS = ({ onLogout, products, setProducts, baskets, setBaskets, sales, setS
                   onMouseUp={e => e.currentTarget.style.transform = isSelected ? 'translateY(-4px) scale(1.02)' : 'none'}
                   onMouseLeave={e => e.currentTarget.style.transform = isSelected ? 'translateY(-4px) scale(1.02)' : 'none'}
                 >
+                  {item.imageUrl && (
+                    <div style={{ width: '100%', height: '110px', marginBottom: '0.75rem', borderRadius: '6px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)' }}>
+                      <img src={item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>{item.name}</h4>
                     <div style={{ display: 'flex', gap: '0.25rem', flexDirection: 'column', alignItems: 'flex-end' }}>
