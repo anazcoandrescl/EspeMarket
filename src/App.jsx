@@ -89,20 +89,28 @@ function App() {
     switch (activeTab) {
       case "dashboard":
         return (
-          <Dashboard products={products} baskets={baskets} sales={sales} />
+          <Dashboard
+            products={(products || []).filter((p) => p)}
+            baskets={(baskets || []).filter((b) => b)}
+            sales={(sales || []).filter((s) => s)}
+          />
         );
       case "live":
         return (
-          <LiveDashboard products={products} baskets={baskets} sales={sales} />
+          <LiveDashboard
+            products={(products || []).filter((p) => p)}
+            baskets={(baskets || []).filter((b) => b)}
+            sales={(sales || []).filter((s) => s)}
+          />
         );
       case "pos":
         return (
           <POS
-            products={products}
+            products={(products || []).filter((p) => p)}
             setProducts={setProducts}
-            baskets={baskets}
+            baskets={(baskets || []).filter((b) => b)}
             setBaskets={setBaskets}
-            sales={sales}
+            sales={(sales || []).filter((s) => s)}
             setSales={setSales}
             offers={offers}
             settings={settings}
@@ -130,23 +138,23 @@ function App() {
       case "baskets":
         return (
           <Baskets
-            products={products}
+            products={(products || []).filter((p) => p)}
             setProducts={setProducts}
-            baskets={baskets}
+            baskets={(baskets || []).filter((b) => b)}
             setBaskets={setBaskets}
             settings={settings}
-            sales={sales}
+            sales={(sales || []).filter((s) => s)}
             setSales={setSales}
           />
         );
       case "sales":
         return (
           <SalesHistory
-            sales={sales}
+            sales={(sales || []).filter((s) => s)}
             setSales={setSales}
-            baskets={baskets}
+            baskets={(baskets || []).filter((b) => b)}
             setBaskets={setBaskets}
-            products={products}
+            products={(products || []).filter((p) => p)}
             setProducts={setProducts}
           />
         );

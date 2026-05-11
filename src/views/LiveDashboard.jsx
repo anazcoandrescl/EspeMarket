@@ -37,7 +37,7 @@ const LiveDashboard = ({ products, baskets, sales = [] }) => {
   const thisMonth = now.getMonth();
   const thisYear = now.getFullYear();
 
-  const safeSales = Array.isArray(sales) ? sales : [];
+  const safeSales = (Array.isArray(sales) ? sales : []).filter((s) => s);
 
   const salesToday = safeSales.filter((s) => isSameDay(new Date(s.date), now));
   const salesMonth = safeSales.filter((s) => {
@@ -86,7 +86,7 @@ const LiveDashboard = ({ products, baskets, sales = [] }) => {
     safeSales.forEach((s) => {
       const isPromo = (Number(s.discountApplied) || 0) > 0;
       (s.items || []).forEach((item) => {
-        const displayName = isPromo ? `${item.name} (Promo)` : item.name;
+        const displayName = isPromo ? `${item?.name || ""} (Promo)` : (item?.name || "");
         if (!counts[displayName]) {
           counts[displayName] = { name: displayName, quantity: 0, revenue: 0 };
         }
@@ -494,7 +494,7 @@ const LiveDashboard = ({ products, baskets, sales = [] }) => {
                             textTransform: "capitalize",
                           }}
                         >
-                          {(s.name || "").replace("Venta POS: ", "")}
+                          {(s?.name || "").replace("Venta POS: ", "")}
                         </p>
                         <p
                           style={{

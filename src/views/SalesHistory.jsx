@@ -165,7 +165,7 @@ const SalesHistory = ({
             sale.paymentMethod || "Efectivo",
             item.type === "basket" ? "Canasta" : "Producto",
             item.category || "Sin Categoria",
-            `"${(item.name || "").replace(/"/g, '""')}"`,
+            `"${(item?.name || "").replace(/"/g, '""')}"`,
             item.quantity || 1,
             item.sellPrice || 0,
             item.cost || 0,
@@ -185,7 +185,7 @@ const SalesHistory = ({
           sale.paymentMethod || "Efectivo",
           sale.basketId ? "Canasta" : "Producto",
           "Sin Categoria",
-          `"${(sale.name || "Desconocido").replace(/"/g, '""')}"`,
+          `"${(sale?.name || "Desconocido").replace(/"/g, '""')}"`,
           1,
           sale.revenue || 0,
           (sale.revenue || 0) - (sale.profit || 0),
@@ -204,7 +204,7 @@ const SalesHistory = ({
     link.setAttribute("href", url);
     link.setAttribute(
       "download",
-      `Ventas_${getFilterLabel().replace(/ /g, "_")}_${new Date().toLocaleDateString("es-CL").replace(/\//g, "-")}.csv`,
+      `Ventas_${(getFilterLabel() || "").replace(/ /g, "_")}_${new Date().toLocaleDateString("es-CL").replace(/\//g, "-")}.csv`,
     );
     link.style.visibility = "hidden";
     document.body.appendChild(link);
